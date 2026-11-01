@@ -321,6 +321,10 @@ section[id] {
     scroll-margin-top: 100px;
 }
 
+#contact {
+    scroll-margin-top: clamp(88px, 12vh, 120px);
+}
+
 /* ── PROJECT CARD COMPACT ─────────────────────────────────────────────────── */
 /* Padding kartu: 16-20px, lebih ramping dari depth-card default */
 .project-card {

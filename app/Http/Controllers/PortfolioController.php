@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ContactFormRequest;
+use App\Mail\ContactMessageMail;
 use App\Models\ContactMessage;
 use App\Models\DesignWork;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\Skill;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class PortfolioController extends Controller
 {
@@ -117,39 +120,63 @@ class PortfolioController extends Controller
         ));
     }
 
-    public function contact(ContactFormRequest $request): RedirectResponse
+    public function contact(ContactFormRequest $request): Response
     {
-        // Honeypot check
+        // Anti-spam honeypot (ditolak jika bot mengisi input honeypot)
         if ($request->filled('website')) {
-            return redirect()->route('home')->with('contact_success', true);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message' => 'Spam terdeteksi.',
+                ], 422);
+            }
+            return redirect()->to(route('home') . '#contact')
+                ->withErrors(['website' => 'Spam terdeteksi.'])
+                ->withInput();
         }
+
+        $directEmail = config('portfolio.profile.email', 'kepinyud67@gmail.com');
+        $targetMail = config('mail.to_address')
+            ?: config('portfolio.profile.mail_to_address')
+            ?: $directEmail;
 
         try {
-            ContactMessage::create([
-                'name'       => $request->name,
-                'email'      => $request->email,
-                'subject'    => $request->subject,
-                'message'    => $request->message,
-                'ip_address' => $request->ip(),
-            ]);
-        } catch (\Throwable $e) {
-            // Mode tanpa database
-        }
-
-        // Kirim notifikasi email ke MAIL_TO_ADDRESS dari .env
-        $targetMail = env('MAIL_TO_ADDRESS', config('mail.to_address', 'kepinyud67@gmail.com'));
-        if (filled($targetMail)) {
-            try {
-                Mail::raw("Pesan baru dari {$request->name} ({$request->email}):\n\n{$request->message}", function ($mail) use ($targetMail, $request) {
-                    $mail->to($targetMail)
-                        ->replyTo($request->email, $request->name)
-                        ->subject("Kontak Portfolio: " . $request->subject);
-                });
-            } catch (\Throwable $e) {
-                Log::info("Pesan kontak tercatat untuk {$targetMail}: " . $e->getMessage());
+            if (empty($targetMail)) {
+                throw new \RuntimeException('Alamat tujuan email belum dikonfigurasi.');
             }
-        }
 
-        return redirect()->route('home', ['#contact'])->with('contact_success', true);
+            Mail::to($targetMail)->send(new ContactMessageMail(
+                senderName: (string) $request->input('name'),
+                senderEmail: (string) $request->input('email'),
+                messageSubject: (string) $request->input('subject'),
+                messageBody: (string) $request->input('message'),
+            ));
+
+            $successMessage = 'Pesan terkirim, terima kasih. Saya akan membalas secepatnya.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMessage,
+                ]);
+            }
+
+            return redirect()->to(route('home') . '#contact')->with('contact_success', $successMessage);
+        } catch (\Throwable $e) {
+            // Catat ke log tanpa mencatat data sensitif pengguna
+            Log::error('Gagal mengirim email kontak: ' . get_class($e) . ' - ' . $e->getCode());
+
+            $errorMessage = 'Maaf, terjadi kendala saat mengirim pesan. Silakan coba lagi atau kirim langsung ke ' . $directEmail . '.';
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $errorMessage,
+                ], 500);
+            }
+
+            return redirect()->to(route('home') . '#contact')
+                ->withInput()
+                ->with('contact_error', $errorMessage);
+        }
     }
 }

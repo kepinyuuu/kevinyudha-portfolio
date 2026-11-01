@@ -50,26 +50,41 @@ Personal portfolio website profesional untuk **Kevin Yudha Pratama** (Web Develo
    php artisan key:generate
    ```
 
-3. **Inisialisasi Database & Seeder**:
+3. **Konfigurasi Email (Formulir Kontak)**:
+   Pesan formulir kontak dikirim langsung melalui email tanpa database. Buka berkas `.env` dan atur parameter email Anda:
+   ```env
+   MAIL_MAILER=smtp
+   MAIL_HOST=smtp.mailgun.org          # atau host SMTP Anda (misal: smtp.gmail.com)
+   MAIL_PORT=587
+   MAIL_USERNAME=your_username
+   MAIL_PASSWORD=your_password
+   MAIL_ENCRYPTION=tls
+   MAIL_FROM_ADDRESS="no-reply@yourdomain.com"
+   MAIL_FROM_NAME="${APP_NAME}"
+   MAIL_TO_ADDRESS=                    # Alamat email tujuan penerima pesan formulir kontak
+   ```
+   *Catatan*: Jika `MAIL_TO_ADDRESS` tidak diisi, sistem otomatis menggunakan email profil pemilik dari `config/portfolio.php`. Untuk pengujian lokal tanpa kirim email nyata, gunakan `MAIL_MAILER=log`.
+
+4. **Inisialisasi Database & Seeder**:
    Set `ADMIN_NAME`, `ADMIN_EMAIL`, dan `ADMIN_PASSWORD` di berkas `.env` Anda, lalu jalankan:
    ```bash
    php artisan migrate:fresh --seed
    ```
 
-4. **Build Frontend**:
+5. **Build Frontend**:
    ```bash
    npm run build
    # atau untuk mode development live-reload:
    # npm run dev
    ```
 
-5. **Jalankan Server Lokal**:
+6. **Jalankan Server Lokal**:
    ```bash
    php artisan serve
    ```
    Akses aplikasi di `http://localhost:8000`.
 
-6. **Menjalankan Test Suite**:
+7. **Menjalankan Test Suite**:
    ```bash
    php artisan test
    ```

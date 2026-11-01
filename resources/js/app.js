@@ -175,6 +175,169 @@ Alpine.data('projectModal', (projects = []) => ({
     }
 }));
 
+// ── Contact Form Component (Alpine.js) ────────────────────────────────────
+Alpine.data('contactForm', (initialData = {}) => ({
+    name: initialData.name || '',
+    email: initialData.email || '',
+    subject: initialData.subject || '',
+    message: initialData.message || '',
+    website: '',
+    loading: false,
+    success: initialData.success || false,
+    successMessage: initialData.successMessage || '',
+    errorMessage: initialData.errorMessage || '',
+    directEmail: initialData.directEmail || '',
+    errors: initialData.errors || {},
+    maxChars: 3000,
+
+    get messageCount() {
+        return (this.message || '').length;
+    },
+
+    clearError(field) {
+        if (this.errors[field]) {
+            delete this.errors[field];
+        }
+        if (Object.keys(this.errors).length === 0 && this.errorMessage) {
+            this.errorMessage = '';
+        }
+    },
+
+    validate() {
+        const errors = {};
+        const trimmedName = (this.name || '').trim();
+        if (!trimmedName) {
+            errors.name = 'Nama lengkap wajib diisi.';
+        } else if (trimmedName.length > 100) {
+            errors.name = 'Nama tidak boleh lebih dari 100 karakter.';
+        } else if (/[\r\n]/.test(this.name)) {
+            errors.name = 'Nama tidak boleh mengandung baris baru.';
+        }
+
+        const trimmedEmail = (this.email || '').trim();
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!trimmedEmail) {
+            errors.email = 'Alamat email wajib diisi.';
+        } else if (!emailRegex.test(trimmedEmail)) {
+            errors.email = 'Format email tidak valid.';
+        } else if (trimmedEmail.length > 100) {
+            errors.email = 'Email tidak boleh lebih dari 100 karakter.';
+        } else if (/[\r\n]/.test(this.email)) {
+            errors.email = 'Email tidak boleh mengandung baris baru.';
+        }
+
+        const trimmedSubject = (this.subject || '').trim();
+        if (!trimmedSubject) {
+            errors.subject = 'Subjek pesan wajib diisi.';
+        } else if (trimmedSubject.length > 150) {
+            errors.subject = 'Subjek tidak boleh lebih dari 150 karakter.';
+        } else if (/[\r\n]/.test(this.subject)) {
+            errors.subject = 'Subjek tidak boleh mengandung baris baru.';
+        }
+
+        const trimmedMessage = (this.message || '').trim();
+        if (!trimmedMessage) {
+            errors.message = 'Pesan wajib diisi.';
+        } else if (trimmedMessage.length < 10) {
+            errors.message = 'Pesan minimal berisi 10 karakter.';
+        } else if (trimmedMessage.length > this.maxChars) {
+            errors.message = 'Pesan maksimal ' + this.maxChars + ' karakter.';
+        }
+
+        this.errors = errors;
+        return Object.keys(errors).length === 0;
+    },
+
+    async handleSubmit(event) {
+        this.errorMessage = '';
+        this.success = false;
+        this.successMessage = '';
+
+        if (!this.validate()) {
+            this.$nextTick(() => {
+                const firstKey = Object.keys(this.errors)[0];
+                if (firstKey) {
+                    const el = document.getElementById(firstKey);
+                    if (el) el.focus();
+                }
+            });
+            return;
+        }
+
+        this.loading = true;
+        const form = event.target;
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: formData,
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (response.ok) {
+                this.success = true;
+                this.successMessage = data.message || 'Pesan terkirim, terima kasih. Saya akan membalas secepatnya.';
+                this.name = '';
+                this.email = '';
+                this.subject = '';
+                this.message = '';
+                this.website = '';
+                this.errors = {};
+
+                this.$nextTick(() => {
+                    const statusEl = document.getElementById('contact-status-box');
+                    if (statusEl) {
+                        statusEl.focus();
+                    }
+                });
+            } else if (response.status === 422) {
+                const serverErrors = {};
+                if (data.errors) {
+                    for (const [key, msgs] of Object.entries(data.errors)) {
+                        serverErrors[key] = Array.isArray(msgs) ? msgs[0] : msgs;
+                    }
+                }
+                this.errors = serverErrors;
+                this.errorMessage = data.message || 'Mohon periksa kembali kolom formulir yang belum sesuai.';
+
+                this.$nextTick(() => {
+                    const firstKey = Object.keys(this.errors)[0];
+                    if (firstKey) {
+                        const el = document.getElementById(firstKey);
+                        if (el) el.focus();
+                    }
+                });
+            } else if (response.status === 429) {
+                this.errorMessage = data.message || 'Terlalu banyak permintaan pengiriman pesan. Silakan coba lagi dalam beberapa menit.';
+                this.$nextTick(() => {
+                    const errEl = document.getElementById('contact-error-box');
+                    if (errEl) errEl.focus();
+                });
+            } else {
+                this.errorMessage = data.message || ('Maaf, terjadi kendala saat mengirim pesan. Silakan coba lagi' + (this.directEmail ? ' atau kirim langsung ke ' + this.directEmail : '') + '.');
+                this.$nextTick(() => {
+                    const errEl = document.getElementById('contact-error-box');
+                    if (errEl) errEl.focus();
+                });
+            }
+        } catch (err) {
+            this.errorMessage = 'Gagal menghubungi server. Periksa koneksi internet Anda' + (this.directEmail ? ' atau kirim langsung ke ' + this.directEmail : '') + '.';
+            this.$nextTick(() => {
+                const errEl = document.getElementById('contact-error-box');
+                if (errEl) errEl.focus();
+            });
+        } finally {
+            this.loading = false;
+        }
+    }
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
 

@@ -115,4 +115,14 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Target Contact Recipient Address
+    |--------------------------------------------------------------------------
+    |
+    | Destination address for incoming messages from the contact form.
+    |
+    */
+    'to_address' => env('MAIL_TO_ADDRESS'),
+
 ];

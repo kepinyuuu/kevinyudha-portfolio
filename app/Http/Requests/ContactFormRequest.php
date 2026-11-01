@@ -14,25 +14,31 @@ class ContactFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'    => ['required', 'string', 'min:2', 'max:100'],
-            'email'   => ['required', 'email', 'max:100'],
-            'subject' => ['required', 'string', 'min:3', 'max:150'],
-            'message' => ['required', 'string', 'min:10', 'max:2000'],
-            'website' => ['nullable', 'string'], // honeypot field checked in controller
+            'name'    => ['required', 'string', 'max:100', 'not_regex:/[\r\n]/'],
+            'email'   => ['required', 'string', 'email', 'max:100', 'not_regex:/[\r\n]/'],
+            'subject' => ['required', 'string', 'max:150', 'not_regex:/[\r\n]/'],
+            'message' => ['required', 'string', 'min:10', 'max:3000'],
+            'website' => ['nullable', 'prohibited'], // Honeypot anti-spam
         ];
     }
 
     public function messages(): array
     {
         return [
-            'name.required'    => 'Nama wajib diisi.',
-            'name.min'         => 'Nama minimal 2 karakter.',
-            'email.required'   => 'Email wajib diisi.',
-            'email.email'      => 'Format email tidak valid.',
-            'subject.required' => 'Subjek wajib diisi.',
-            'subject.min'      => 'Subjek minimal 3 karakter.',
-            'message.required' => 'Pesan wajib diisi.',
-            'message.min'      => 'Pesan minimal 10 karakter.',
+            'name.required'      => 'Nama lengkap wajib diisi.',
+            'name.max'           => 'Nama tidak boleh lebih dari 100 karakter.',
+            'name.not_regex'     => 'Nama tidak boleh mengandung baris baru.',
+            'email.required'     => 'Alamat email wajib diisi.',
+            'email.email'        => 'Format email tidak valid.',
+            'email.max'          => 'Email tidak boleh lebih dari 100 karakter.',
+            'email.not_regex'    => 'Email tidak boleh mengandung baris baru.',
+            'subject.required'   => 'Subjek pesan wajib diisi.',
+            'subject.max'        => 'Subjek tidak boleh lebih dari 150 karakter.',
+            'subject.not_regex'  => 'Subjek tidak boleh mengandung baris baru.',
+            'message.required'   => 'Pesan wajib diisi.',
+            'message.min'        => 'Pesan minimal berisi 10 karakter.',
+            'message.max'        => 'Pesan maksimal berisi 3000 karakter.',
+            'website.prohibited' => 'Spam terdeteksi.',
         ];
     }
 }

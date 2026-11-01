@@ -2,17 +2,26 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ContactMessageMail;
 use App\Models\ContactMessage;
 use App\Models\Profile;
 use App\Models\Project;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 use Tests\TestCase;
 
 class PortfolioTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        RateLimiter::clear('contact');
+    }
 
     public function test_cv_data_is_displayed_accurately_on_portfolio(): void
     {
@@ -81,49 +90,229 @@ class PortfolioTest extends TestCase
         $response->assertSee('wa.me/6283831520933');
     }
 
-    public function test_contact_form_submits_successfully(): void
+    public function test_contact_form_sends_email_with_mail_fake_and_no_database(): void
     {
-        $response = $this->post('/contact', [
-            'name' => 'Budi Santoso',
-            'email' => 'budi@mail.com',
+        Mail::fake();
+
+        $targetEmail = config('mail.to_address') ?: config('portfolio.profile.email', 'kepinyud67@gmail.com');
+
+        $payload = [
+            'name'    => 'Budi Santoso',
+            'email'   => 'budi@mail.com',
             'subject' => 'Diskusi Proyek Web',
-            'message' => 'Halo Kevin, saya tertarik mendiskusikan pembuatan website.',
+            'message' => 'Halo Kevin, saya tertarik mendiskusikan pembuatan website baru.',
+        ];
+
+        // 1. Normal POST request
+        $response = $this->post(route('contact.send'), $payload);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas('contact_success');
+
+        // Tidak ada database: pesan dikirim sebagai email
+        $this->assertDatabaseCount('contact_messages', 0);
+
+        // 1 email terkirim ke alamat tujuan dengan Reply-To yang benar
+        Mail::assertSent(ContactMessageMail::class, function ($mail) use ($payload, $targetEmail) {
+            return $mail->hasTo($targetEmail) &&
+                   $mail->hasReplyTo($payload['email'], $payload['name']) &&
+                   str_contains($mail->envelope()->subject, $payload['subject']) &&
+                   $mail->senderName === $payload['name'] &&
+                   $mail->senderEmail === $payload['email'] &&
+                   $mail->messageBody === $payload['message'];
+        });
+
+        // 2. Fetch/AJAX JSON request
+        $jsonResponse = $this->postJson(route('contact.send'), [
+            'name'    => 'Siti Rahma',
+            'email'   => 'siti@mail.com',
+            'subject' => 'Tanya Desain UI/UX',
+            'message' => 'Halo Kevin, apakah Anda membuka jasa perancangan UI/UX website?',
         ]);
 
-        $response->assertSessionHas('contact_success', true);
-        $this->assertDatabaseHas('contact_messages', [
-            'name' => 'Budi Santoso',
-            'email' => 'budi@mail.com',
-            'subject' => 'Diskusi Proyek Web',
+        $jsonResponse->assertOk();
+        $jsonResponse->assertJson([
+            'success' => true,
         ]);
+
+        $this->assertDatabaseCount('contact_messages', 0);
     }
 
-    public function test_contact_form_honeypot_discards_spam_silently(): void
+    public function test_contact_form_validates_required_fields_and_formats(): void
     {
-        $response = $this->post('/contact', [
-            'name' => 'Spammer Bot',
-            'email' => 'spammer@bot.com',
-            'subject' => 'Spam Title',
-            'message' => 'Buy cheap shoes here',
-            'website' => 'http://spamurl.com', // Honeypot terisi
-        ]);
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
 
-        $response->assertSessionHas('contact_success', true);
-        $this->assertDatabaseMissing('contact_messages', [
-            'name' => 'Spammer Bot',
-        ]);
-    }
-
-    public function test_contact_form_validates_required_fields(): void
-    {
-        $response = $this->post('/contact', [
-            'name' => '',
-            'email' => 'invalid-email',
+        // Kolom kosong
+        $responseEmpty = $this->post(route('contact.send'), [
+            'name'    => '',
+            'email'   => '',
             'subject' => '',
             'message' => '',
         ]);
+        $responseEmpty->assertSessionHasErrors(['name', 'email', 'subject', 'message']);
 
-        $response->assertSessionHasErrors(['name', 'email', 'subject', 'message']);
+        // Format email salah
+        $responseBadEmail = $this->post(route('contact.send'), [
+            'name'    => 'Kevin Tester',
+            'email'   => 'bukan-email-valid',
+            'subject' => 'Subjek valid',
+            'message' => 'Ini adalah pesan valid yang panjangnya lebih dari 10 karakter.',
+        ]);
+        $responseBadEmail->assertSessionHasErrors(['email']);
+
+        // Pesan terlalu pendek (< 10 karakter)
+        $responseShortMsg = $this->post(route('contact.send'), [
+            'name'    => 'Kevin Tester',
+            'email'   => 'tester@mail.com',
+            'subject' => 'Subjek valid',
+            'message' => 'Pendek',
+        ]);
+        $responseShortMsg->assertSessionHasErrors(['message']);
+
+        // Pesan terlalu panjang (> 3000 karakter)
+        $responseLongMsg = $this->post(route('contact.send'), [
+            'name'    => 'Kevin Tester',
+            'email'   => 'tester@mail.com',
+            'subject' => 'Subjek valid',
+            'message' => str_repeat('A', 3001),
+        ]);
+        $responseLongMsg->assertSessionHasErrors(['message']);
+    }
+
+    public function test_contact_form_honeypot_rejects_and_does_not_send_email(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        Mail::fake();
+
+        $response = $this->post(route('contact.send'), [
+            'name'    => 'Spammer Bot',
+            'email'   => 'spammer@bot.com',
+            'subject' => 'Spam Title',
+            'message' => 'Buy cheap shoes here today with discounts!',
+            'website' => 'http://spamurl.com', // Honeypot terisi
+        ]);
+
+        $response->assertSessionHasErrors('website');
+        Mail::assertNothingSent();
+        $this->assertDatabaseCount('contact_messages', 0);
+
+        // JSON format honeypot check
+        $jsonResponse = $this->postJson(route('contact.send'), [
+            'name'    => 'Spammer Bot',
+            'email'   => 'spammer@bot.com',
+            'subject' => 'Spam Title',
+            'message' => 'Buy cheap shoes here today with discounts!',
+            'website' => 'http://spamurl.com',
+        ]);
+
+        $jsonResponse->assertStatus(422);
+        Mail::assertNothingSent();
+    }
+
+    public function test_contact_form_rejects_header_injection(): void
+    {
+        $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
+        Mail::fake();
+
+        $payloads = [
+            ['name' => "John\r\nBcc: hacker@test.com", 'field' => 'name'],
+            ['email' => "injected\n@mail.com", 'field' => 'email'],
+            ['subject' => "Subject Line\r\nTo: victim@test.com", 'field' => 'subject'],
+        ];
+
+        foreach ($payloads as $case) {
+            $data = [
+                'name'    => 'Normal Name',
+                'email'   => 'normal@mail.com',
+                'subject' => 'Normal Subject',
+                'message' => 'Ini pesan normal yang lebih dari 10 karakter.',
+            ];
+            $data[$case['field']] = $case[$case['field']];
+
+            $response = $this->post(route('contact.send'), $data);
+            $response->assertSessionHasErrors($case['field']);
+        }
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_contact_form_rate_limiting(): void
+    {
+        Mail::fake();
+        RateLimiter::clear('contact');
+
+        $validPayload = [
+            'name'    => 'User Rate Limit',
+            'email'   => 'rate@test.com',
+            'subject' => 'Pesan Percobaan',
+            'message' => 'Pesan pengujian pembatasan laju pengiriman formulir kontak.',
+        ];
+
+        // 3 kirim pertama berhasil (batas 3 per 10 menit)
+        for ($i = 0; $i < 3; $i++) {
+            $resp = $this->post(route('contact.send'), $validPayload);
+            $resp->assertStatus(302);
+        }
+
+        // Kirim ke-4 melebihi kuota -> respons 429
+        $exceededResponse = $this->post(route('contact.send'), $validPayload);
+        $exceededResponse->assertStatus(429);
+
+        // AJAX request juga mendapat 429
+        $jsonExceeded = $this->postJson(route('contact.send'), $validPayload);
+        $jsonExceeded->assertStatus(429);
+        $jsonExceeded->assertJsonStructure(['message']);
+    }
+
+    public function test_contact_form_handles_mailer_exception_gracefully(): void
+    {
+        RateLimiter::clear('contact');
+
+        // Simulasikan kegagalan mailer
+        Mail::shouldReceive('to')
+            ->once()
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new \RuntimeException('SMTP Connection Timeout'));
+
+        // Kirim biasa: tidak menampilkan 500 error page, melainkan redirect dengan pesan ramah
+        $response = $this->post(route('contact.send'), [
+            'name'    => 'Kevin Pengirim',
+            'email'   => 'pengirim@test.com',
+            'subject' => 'Uji Coba Mailer Error',
+            'message' => 'Pesan pengujian untuk menangani kegagalan mailer.',
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHas('contact_error');
+
+        // Pesan error ramah memuat alternatif direct email
+        $directEmail = config('portfolio.profile.email', 'kepinyud67@gmail.com');
+        $errorMessage = session('contact_error');
+        $this->assertStringContainsString($directEmail, $errorMessage);
+        // Detail teknis exception TIDAK bocor ke pengguna
+        $this->assertStringNotContainsString('SMTP Connection Timeout', $errorMessage);
+
+        // Uji untuk JSON request
+        Mail::shouldReceive('to')
+            ->once()
+            ->andReturnSelf();
+        Mail::shouldReceive('send')
+            ->once()
+            ->andThrow(new \RuntimeException('Connection refused 111'));
+
+        $jsonResp = $this->postJson(route('contact.send'), [
+            'name'    => 'Kevin Pengirim',
+            'email'   => 'pengirim@test.com',
+            'subject' => 'Uji Coba Mailer Error JSON',
+            'message' => 'Pesan pengujian untuk menangani kegagalan mailer via JSON.',
+        ]);
+
+        $jsonResp->assertStatus(500);
+        $jsonResp->assertJson(['success' => false]);
+        $jsonResp->assertJsonMissing(['message' => 'Connection refused 111']);
+        $jsonResp->assertSee($directEmail);
     }
 
     public function test_admin_login_and_access_control(): void

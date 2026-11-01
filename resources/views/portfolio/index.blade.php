@@ -770,7 +770,7 @@
     @endif
 
     {{-- ═══ CONTACT SECTION (Form & Informasi dengan Kartu Depth) ═══════════════ --}}
-    <section id="contact" class="editorial-section border-b border-[var(--border)] bg-[var(--background)]">
+    <section id="contact" class="editorial-section border-b border-[var(--border)] bg-[var(--background)] scroll-mt-24 md:scroll-mt-28">
         <div class="editorial-container">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
 
@@ -821,25 +821,77 @@
                     </div>
                 </div>
 
-                {{-- Right: Contact Form --}}
-                <div class="lg:col-span-7 depth-card p-8 md:p-10 shadow-2xl scroll-reveal" style="transition-delay: 80ms">
-                    @if(session('contact_success'))
-                    <div class="bg-[var(--secondary)] border border-[var(--border)] rounded-xl p-5 mb-6 text-center">
-                        <div class="w-10 h-10 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mx-auto mb-2.5">
+                {{-- Right: Contact Form (Alpine.js AJAX with SSR Fallback) --}}
+                <div class="lg:col-span-7 depth-card p-8 md:p-10 shadow-2xl scroll-reveal"
+                     style="transition-delay: 80ms"
+                     x-data="contactForm({
+                         name: @js(old('name', '')),
+                         email: @js(old('email', '')),
+                         subject: @js(old('subject', '')),
+                         message: @js(old('message', '')),
+                         success: @js(session('contact_success') ? true : false),
+                         successMessage: @js(is_string(session('contact_success')) ? session('contact_success') : (session('contact_success') ? 'Pesan terkirim, terima kasih.' : '')),
+                         errorMessage: @js(session('contact_error') ?? ''),
+                         directEmail: @js($profile->email ?? ''),
+                         errors: {
+                             @error('name') name: @js($message), @enderror
+                             @error('email') email: @js($message), @enderror
+                             @error('subject') subject: @js($message), @enderror
+                             @error('message') message: @js($message), @enderror
+                             @error('website') website: @js($message), @enderror
+                         }
+                     })">
+
+                    {{-- Success Status Alert (role="status", aria-live="polite") --}}
+                    <div
+                        id="contact-status-box"
+                        tabindex="-1"
+                        x-show="success"
+                        x-cloak
+                        role="status"
+                        aria-live="polite"
+                        class="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 mb-6 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500/40">
+                        <div class="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-2.5">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
                             </svg>
                         </div>
-                        <p class="font-semibold text-sm text-[var(--foreground)]">Pesan terkirim dengan baik!</p>
+                        <p class="font-semibold text-sm text-[var(--foreground)]" x-text="successMessage || 'Pesan terkirim, terima kasih.'">
+                            {{ is_string(session('contact_success')) ? session('contact_success') : 'Pesan terkirim, terima kasih.' }}
+                        </p>
                         <p class="text-xs text-[var(--muted)] mt-1">Terima kasih telah menghubungi. Saya akan membalas secepatnya.</p>
                     </div>
-                    @endif
 
-                    <form action="{{ route('contact') }}" method="POST" class="space-y-5" id="contact-form">
+                    {{-- Error Status Alert (role="alert", aria-live="assertive") --}}
+                    <div
+                        id="contact-error-box"
+                        tabindex="-1"
+                        x-show="Boolean(errorMessage)"
+                        x-cloak
+                        role="alert"
+                        aria-live="assertive"
+                        class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6 text-left focus:outline-none focus:ring-2 focus:ring-red-500/40">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-full bg-red-500/20 text-red-400 flex-shrink-0 flex items-center justify-center mt-0.5">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-xs uppercase tracking-wider text-red-400">Gagal Mengirim</p>
+                                <p class="text-sm text-[var(--foreground)] mt-0.5" x-text="errorMessage">
+                                    {{ session('contact_error') ?? '' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('contact.send') }}" method="POST" class="space-y-5" id="contact-form" @submit.prevent="handleSubmit($event)">
                         @csrf
-                        {{-- Honeypot Spam Defense --}}
-                        <div class="hidden" aria-hidden="true">
-                            <input type="text" name="website" tabindex="-1" autocomplete="off">
+                        {{-- Honeypot Spam Defense (Aksesibel & tidak terbaca screen reader) --}}
+                        <div class="hidden" aria-hidden="true" style="display:none;">
+                            <label for="website">Abaikan kolom ini jika Anda manusia</label>
+                            <input type="text" id="website" name="website" x-model="website" tabindex="-1" autocomplete="off">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -851,13 +903,24 @@
                                     type="text"
                                     id="name"
                                     name="name"
+                                    x-model="name"
+                                    @input="clearError('name')"
+                                    :aria-invalid="errors.name ? 'true' : 'false'"
+                                    :aria-describedby="errors.name ? 'name-error' : null"
                                     value="{{ old('name') }}"
-                                    class="editorial-input @error('name') border-red-500 @enderror"
+                                    class="editorial-input"
+                                    :class="{ 'border-red-500': errors.name }"
                                     placeholder="Nama Anda"
-                                    required>
-                                @error('name')
-                                <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                                @enderror
+                                    required
+                                    maxlength="100">
+                                <p id="name-error"
+                                   x-show="errors.name"
+                                   x-text="errors.name"
+                                   x-cloak
+                                   class="text-xs text-red-400 mt-1"
+                                   role="alert">
+                                    @error('name') {{ $message }} @enderror
+                                </p>
                             </div>
 
                             <div>
@@ -868,13 +931,24 @@
                                     type="email"
                                     id="email"
                                     name="email"
+                                    x-model="email"
+                                    @input="clearError('email')"
+                                    :aria-invalid="errors.email ? 'true' : 'false'"
+                                    :aria-describedby="errors.email ? 'email-error' : null"
                                     value="{{ old('email') }}"
-                                    class="editorial-input @error('email') border-red-500 @enderror"
+                                    class="editorial-input"
+                                    :class="{ 'border-red-500': errors.email }"
                                     placeholder="nama@email.com"
-                                    required>
-                                @error('email')
-                                <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                                @enderror
+                                    required
+                                    maxlength="100">
+                                <p id="email-error"
+                                   x-show="errors.email"
+                                   x-text="errors.email"
+                                   x-cloak
+                                   class="text-xs text-red-400 mt-1"
+                                   role="alert">
+                                    @error('email') {{ $message }} @enderror
+                                </p>
                             </div>
                         </div>
 
@@ -886,40 +960,79 @@
                                 type="text"
                                 id="subject"
                                 name="subject"
+                                x-model="subject"
+                                @input="clearError('subject')"
+                                :aria-invalid="errors.subject ? 'true' : 'false'"
+                                :aria-describedby="errors.subject ? 'subject-error' : null"
                                 value="{{ old('subject') }}"
-                                class="editorial-input @error('subject') border-red-500 @enderror"
+                                class="editorial-input"
+                                :class="{ 'border-red-500': errors.subject }"
                                 placeholder="Subjek pesan atau topik proyek"
-                                required>
-                            @error('subject')
-                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                            @enderror
+                                required
+                                maxlength="150">
+                            <p id="subject-error"
+                               x-show="errors.subject"
+                               x-text="errors.subject"
+                               x-cloak
+                               class="text-xs text-red-400 mt-1"
+                               role="alert">
+                                @error('subject') {{ $message }} @enderror
+                            </p>
                         </div>
 
                         <div>
-                            <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">
-                                Pesan <span class="text-[var(--foreground)]">*</span>
-                            </label>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                    Pesan <span class="text-[var(--foreground)]">*</span>
+                                </label>
+                                <span class="text-xs text-[var(--muted)] font-mono" aria-live="polite">
+                                    <span x-text="messageCount">{{ strlen(old('message', '')) }}</span>/3000
+                                </span>
+                            </div>
                             <textarea
                                 id="message"
                                 name="message"
                                 rows="5"
-                                class="editorial-input resize-none @error('message') border-red-500 @enderror"
+                                x-model="message"
+                                @input="clearError('message')"
+                                :aria-invalid="errors.message ? 'true' : 'false'"
+                                :aria-describedby="errors.message ? 'message-error' : null"
+                                class="editorial-input resize-none"
+                                :class="{ 'border-red-500': errors.message }"
                                 placeholder="Tuliskan pesan Anda..."
-                                required>{{ old('message') }}</textarea>
-                            @error('message')
-                            <p class="text-xs text-red-400 mt-1">{{ $message }}</p>
-                            @enderror
+                                required
+                                minlength="10"
+                                maxlength="3000">{{ old('message') }}</textarea>
+                            <p id="message-error"
+                               x-show="errors.message"
+                               x-text="errors.message"
+                               x-cloak
+                               class="text-xs text-red-400 mt-1"
+                               role="alert">
+                                @error('message') {{ $message }} @enderror
+                            </p>
                         </div>
 
                         <div class="flex justify-end pt-2">
                             <button
                                 type="submit"
                                 class="btn-glass-primary w-full sm:w-auto"
-                                id="contact-submit">
-                                <span>Kirim Pesan</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
-                                </svg>
+                                id="contact-submit"
+                                :disabled="loading"
+                                :aria-busy="loading ? 'true' : 'false'">
+                                <span x-show="loading" x-cloak class="inline-flex items-center gap-2">
+                                    <svg class="animate-spin w-4 h-4 text-current" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Mengirim...</span>
+                                </span>
+                                <span x-show="!loading" class="inline-flex items-center gap-2">
+                                    <span>Kirim Pesan</span>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                                    </svg>
+                                </span>
                             </button>
                         </div>
                     </form>

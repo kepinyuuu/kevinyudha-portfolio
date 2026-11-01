@@ -20,6 +20,7 @@ return [
         'interests'         => 'Pengembangan Website, Desain UI/UX',
         'experience'        => null,
         'email'             => 'kepinyud67@gmail.com',
+        'mail_to_address'   => env('MAIL_TO_ADDRESS'), // Jika kosong, fallback ke email profile
         'phone'             => '+62 838 3152 0933',
         'whatsapp_url'      => 'https://wa.me/6283831520933',
         'show_phone'        => true, // Default false: nomor telepon/WA hanya tampil jika bernilai true

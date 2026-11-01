@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Route;
 // ─── Public ────────────────────────────────────────────────────────────────
 Route::get('/', [PortfolioController::class, 'index'])->name('home');
 Route::post('/contact', [PortfolioController::class, 'contact'])
-    ->name('contact')
-    ->middleware('throttle:5,1'); // 5 req/min anti-spam
+    ->name('contact.send')
+    ->middleware('throttle:contact'); // 3 kirim per 10 menit anti-spam rate limiter
 
 // ─── Admin Auth ────────────────────────────────────────────────────────────
 Route::prefix('admin')->name('admin.')->group(function () {

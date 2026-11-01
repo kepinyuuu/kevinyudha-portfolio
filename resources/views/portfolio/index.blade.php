@@ -821,25 +821,24 @@
                     </div>
                 </div>
 
-                {{-- Right: Contact Form (Alpine.js AJAX with SSR Fallback) --}}
+                {{-- Right: Contact Form (Alpine.js EmailJS Integration) --}}
                 <div class="lg:col-span-7 depth-card p-8 md:p-10 shadow-2xl scroll-reveal"
                      style="transition-delay: 80ms"
                      x-data="contactForm({
-                         name: @js(old('name', '')),
-                         email: @js(old('email', '')),
-                         subject: @js(old('subject', '')),
-                         message: @js(old('message', '')),
-                         success: @js(session('contact_success') ? true : false),
-                         successMessage: @js(is_string(session('contact_success')) ? session('contact_success') : (session('contact_success') ? 'Pesan terkirim, terima kasih.' : '')),
-                         errorMessage: @js(session('contact_error') ?? ''),
+                         name: '',
+                         email: '',
+                         subject: '',
+                         message: '',
+                         success: false,
+                         successMessage: '',
+                         errorMessage: '',
                          directEmail: @js($profile->email ?? ''),
-                         errors: {
-                             @error('name') name: @js($message), @enderror
-                             @error('email') email: @js($message), @enderror
-                             @error('subject') subject: @js($message), @enderror
-                             @error('message') message: @js($message), @enderror
-                             @error('website') website: @js($message), @enderror
-                         }
+                         emailjs: {
+                             serviceId: @js(config('portfolio.emailjs.service_id') ?: ''),
+                             templateId: @js(config('portfolio.emailjs.template_id') ?: ''),
+                             publicKey: @js(config('portfolio.emailjs.public_key') ?: ''),
+                         },
+                         errors: {}
                      })">
 
                     {{-- Success Status Alert (role="status", aria-live="polite") --}}
@@ -886,8 +885,7 @@
                         </div>
                     </div>
 
-                    <form action="{{ route('contact.send') }}" method="POST" class="space-y-5" id="contact-form" @submit.prevent="handleSubmit($event)">
-                        @csrf
+                    <form class="space-y-5" id="contact-form" @submit.prevent="handleSubmit($event)">
                         {{-- Honeypot Spam Defense (Aksesibel & tidak terbaca screen reader) --}}
                         <div class="hidden" aria-hidden="true" style="display:none;">
                             <label for="website">Abaikan kolom ini jika Anda manusia</label>
@@ -1028,7 +1026,7 @@
                                     <span>Mengirim...</span>
                                 </span>
                                 <span x-show="!loading" class="inline-flex items-center gap-2">
-                                    <span>Kirim Pesan</span>
+                                    <span>Send Message</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
                                     </svg>

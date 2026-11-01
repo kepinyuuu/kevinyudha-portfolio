@@ -1,5 +1,6 @@
 import './bootstrap';
 import Alpine from 'alpinejs';
+import emailjs from '@emailjs/browser';
 
 // ── Project Modal / Dialog Component (Alpine.js) ──────────────────────────
 Alpine.data('projectModal', (projects = []) => ({
@@ -175,7 +176,7 @@ Alpine.data('projectModal', (projects = []) => ({
     }
 }));
 
-// ── Contact Form Component (Alpine.js) ────────────────────────────────────
+// ── Contact Form Component (Alpine.js with EmailJS Integration) ───────────
 Alpine.data('contactForm', (initialData = {}) => ({
     name: initialData.name || '',
     email: initialData.email || '',
@@ -189,6 +190,10 @@ Alpine.data('contactForm', (initialData = {}) => ({
     directEmail: initialData.directEmail || '',
     errors: initialData.errors || {},
     maxChars: 3000,
+
+    serviceId: (initialData.emailjs?.serviceId || import.meta.env.VITE_EMAILJS_SERVICE_ID || '').trim(),
+    templateId: (initialData.emailjs?.templateId || import.meta.env.VITE_EMAILJS_TEMPLATE_ID || '').trim(),
+    publicKey: (initialData.emailjs?.publicKey || import.meta.env.VITE_EMAILJS_PUBLIC_KEY || '').trim(),
 
     get messageCount() {
         return (this.message || '').length;
@@ -249,10 +254,20 @@ Alpine.data('contactForm', (initialData = {}) => ({
     },
 
     async handleSubmit(event) {
+        // Cegah pengiriman ganda saat proses pengiriman berlangsung
+        if (this.loading) return;
+
         this.errorMessage = '';
         this.success = false;
         this.successMessage = '';
 
+        // Validasi honeypot bot spam
+        if (this.website) {
+            this.errors.website = 'Spam terdeteksi.';
+            return;
+        }
+
+        // Validasi seluruh input sisi klien
         if (!this.validate()) {
             this.$nextTick(() => {
                 const firstKey = Object.keys(this.errors)[0];
@@ -264,70 +279,64 @@ Alpine.data('contactForm', (initialData = {}) => ({
             return;
         }
 
+        // Cek ketersediaan konfigurasi EmailJS
+        if (!this.serviceId || !this.templateId || !this.publicKey) {
+            this.errorMessage = 'Konfigurasi EmailJS belum diisi. Silakan isi VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, dan VITE_EMAILJS_PUBLIC_KEY di berkas .env Anda.';
+            this.$nextTick(() => {
+                const errEl = document.getElementById('contact-error-box');
+                if (errEl) errEl.focus();
+            });
+            return;
+        }
+
         this.loading = true;
-        const form = event.target;
-        const formData = new FormData(form);
+
+        const templateParams = {
+            name: this.name.trim(),
+            from_name: this.name.trim(),
+            user_name: this.name.trim(),
+
+            email: this.email.trim(),
+            from_email: this.email.trim(),
+            user_email: this.email.trim(),
+            reply_to: this.email.trim(),
+
+            subject: this.subject.trim(),
+            title: this.subject.trim(),
+
+            message: this.message.trim(),
+        };
 
         try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                body: formData,
-            });
-
-            const data = await response.json().catch(() => ({}));
-
-            if (response.ok) {
-                this.success = true;
-                this.successMessage = data.message || 'Pesan terkirim, terima kasih. Saya akan membalas secepatnya.';
-                this.name = '';
-                this.email = '';
-                this.subject = '';
-                this.message = '';
-                this.website = '';
-                this.errors = {};
-
-                this.$nextTick(() => {
-                    const statusEl = document.getElementById('contact-status-box');
-                    if (statusEl) {
-                        statusEl.focus();
-                    }
-                });
-            } else if (response.status === 422) {
-                const serverErrors = {};
-                if (data.errors) {
-                    for (const [key, msgs] of Object.entries(data.errors)) {
-                        serverErrors[key] = Array.isArray(msgs) ? msgs[0] : msgs;
-                    }
+            await emailjs.send(
+                this.serviceId,
+                this.templateId,
+                templateParams,
+                {
+                    publicKey: this.publicKey,
                 }
-                this.errors = serverErrors;
-                this.errorMessage = data.message || 'Mohon periksa kembali kolom formulir yang belum sesuai.';
+            );
 
-                this.$nextTick(() => {
-                    const firstKey = Object.keys(this.errors)[0];
-                    if (firstKey) {
-                        const el = document.getElementById(firstKey);
-                        if (el) el.focus();
-                    }
-                });
-            } else if (response.status === 429) {
-                this.errorMessage = data.message || 'Terlalu banyak permintaan pengiriman pesan. Silakan coba lagi dalam beberapa menit.';
-                this.$nextTick(() => {
-                    const errEl = document.getElementById('contact-error-box');
-                    if (errEl) errEl.focus();
-                });
-            } else {
-                this.errorMessage = data.message || ('Maaf, terjadi kendala saat mengirim pesan. Silakan coba lagi' + (this.directEmail ? ' atau kirim langsung ke ' + this.directEmail : '') + '.');
-                this.$nextTick(() => {
-                    const errEl = document.getElementById('contact-error-box');
-                    if (errEl) errEl.focus();
-                });
-            }
+            this.success = true;
+            this.successMessage = 'Pesan berhasil terkirim melalui EmailJS! Terima kasih telah menghubungi, saya akan membalas secepatnya.';
+            this.name = '';
+            this.email = '';
+            this.subject = '';
+            this.message = '';
+            this.website = '';
+            this.errors = {};
+
+            this.$nextTick(() => {
+                const statusEl = document.getElementById('contact-status-box');
+                if (statusEl) {
+                    statusEl.focus();
+                }
+            });
         } catch (err) {
-            this.errorMessage = 'Gagal menghubungi server. Periksa koneksi internet Anda' + (this.directEmail ? ' atau kirim langsung ke ' + this.directEmail : '') + '.';
+            console.error('EmailJS Error:', err);
+            const errDetail = err?.text || err?.message || 'Terjadi kesalahan saat mengirim pesan via EmailJS';
+            this.errorMessage = errDetail + (this.directEmail ? ' atau Anda dapat mengirim langsung ke ' + this.directEmail : '') + '.';
+
             this.$nextTick(() => {
                 const errEl = document.getElementById('contact-error-box');
                 if (errEl) errEl.focus();

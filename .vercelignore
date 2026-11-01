@@ -5,6 +5,12 @@
 node_modules/
 vendor/
 tests/
+.vercel
+public/hot
+bootstrap/cache/*.php
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
 storage/logs/*.log
 database/*.sqlite
 database/*.sqlite-journal

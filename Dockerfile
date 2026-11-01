@@ -1,12 +1,21 @@
 # ==============================================================================
-# Stage 1: Build Frontend Assets (Vite, Tailwind, Alpine)
+# Stage 1: Build Frontend Assets (Vite, Tailwind, Alpine, EmailJS)
 # ==============================================================================
-FROM node:20-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 
+# Build arguments with local .env defaults so keys are baked into frontend bundle at build time
+ARG VITE_EMAILJS_SERVICE_ID="service_z82ffsj"
+ARG VITE_EMAILJS_TEMPLATE_ID="template_tispfyc"
+ARG VITE_EMAILJS_PUBLIC_KEY="XjhNUFBGpJx9_2uoU"
+
+ENV VITE_EMAILJS_SERVICE_ID=$VITE_EMAILJS_SERVICE_ID
+ENV VITE_EMAILJS_TEMPLATE_ID=$VITE_EMAILJS_TEMPLATE_ID
+ENV VITE_EMAILJS_PUBLIC_KEY=$VITE_EMAILJS_PUBLIC_KEY
+
 COPY package*.json ./
-RUN npm install --prefer-offline --no-audit
+RUN npm ci
 
 COPY vite.config.js ./
 COPY resources ./resources
@@ -17,21 +26,14 @@ RUN npm run build
 # ==============================================================================
 # Stage 2: FrankenPHP Production Container
 # ==============================================================================
-FROM dunglas/frankenphp:latest
+FROM dunglas/frankenphp:1-php8.4-bookworm
 
 WORKDIR /app
 
-# Install PHP extensions required by Laravel & databases
+# Install PHP extensions: hanya intl dan zip (tanpa database dan tanpa redis)
 RUN install-php-extensions \
-    pdo_mysql \
-    pdo_pgsql \
-    pdo_sqlite \
-    zip \
     intl \
-    gd \
-    bcmath \
-    opcache \
-    redis
+    zip
 
 # Copy Composer binary from official image
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -45,22 +47,19 @@ COPY --from=frontend-builder /app/public/build /app/public/build
 # Install PHP production dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
-# Prepare permissions
-RUN chmod -R 775 /app/storage /app/bootstrap/cache && \
+# Ubah baris akhir docker/entrypoint.sh ke LF dan beri izin eksekusi
+RUN tr -d '\r' < /app/docker/entrypoint.sh > /app/docker/entrypoint.tmp && \
+    mv /app/docker/entrypoint.tmp /app/docker/entrypoint.sh && \
     chmod +x /app/docker/entrypoint.sh
 
-# Environment defaults for Vercel Container execution (Mode tanpa DB eksternal & tanpa S3)
+# Environment defaults for Vercel Container execution (Mode tanpa DB & tanpa storage eksternal)
 ENV SERVER_NAME=":80"
 ENV APP_ENV=production
 ENV APP_DEBUG=false
-ENV APP_STORAGE_PATH=/tmp/storage
 ENV LOG_CHANNEL=stderr
-ENV VIEW_COMPILED_PATH=/tmp/storage/framework/views
 ENV SESSION_DRIVER=cookie
-ENV CACHE_STORE=file
-ENV FILESYSTEM_DISK=public
-ENV DB_CONNECTION=sqlite
-ENV DB_DATABASE=/tmp/storage/database.sqlite
+ENV CACHE_STORE=array
+ENV VIEW_COMPILED_PATH=/tmp/storage/framework/views
 
 EXPOSE 80
 

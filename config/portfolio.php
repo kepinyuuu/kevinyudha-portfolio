@@ -23,7 +23,7 @@ return [
         'mail_to_address'   => env('MAIL_TO_ADDRESS'), // Jika kosong, fallback ke email profile
         'phone'             => '+62 838 3152 0933',
         'whatsapp_url'      => 'https://wa.me/6283831520933',
-        'show_phone'        => true, // Default false: nomor telepon/WA hanya tampil jika bernilai true
+        'show_phone'        => false, // Default false: nomor telepon/WA hanya tampil jika bernilai true
         'github_url'        => 'https://github.com/kepinyuuu',
         'linkedin_url'      => null, // CV hanya menulis nama tanpa URL -> sembunyikan
         'instagram_url'     => null, // Tidak ada di CV -> sembunyikan
@@ -166,6 +166,7 @@ return [
             'contact_me'    => 'Contact Me',
             'email'         => 'Email',
             'view_details'  => 'View details',
+            'send_message'  => 'Send Message',
         ],
         'ui' => [
             'skip_to_content'   => 'Skip to content',
@@ -180,6 +181,17 @@ return [
             'projects' => ['eyebrow' => 'Projects', 'title' => 'Projects'],
             'contact'  => ['eyebrow' => 'Contact',  'title' => 'Contact'],
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Konfigurasi EmailJS (Pengiriman Pesan Kontak Sisi Klien)
+    |--------------------------------------------------------------------------
+    */
+    'emailjs' => [
+        'service_id'  => env('VITE_EMAILJS_SERVICE_ID', env('EMAILJS_SERVICE_ID', '')),
+        'template_id' => env('VITE_EMAILJS_TEMPLATE_ID', env('EMAILJS_TEMPLATE_ID', '')),
+        'public_key'  => env('VITE_EMAILJS_PUBLIC_KEY', env('EMAILJS_PUBLIC_KEY', '')),
     ],
 
     /*

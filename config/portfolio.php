@@ -23,7 +23,7 @@ return [
         'mail_to_address'   => env('MAIL_TO_ADDRESS'), // Jika kosong, fallback ke email profile
         'phone'             => '+62 838 3152 0933',
         'whatsapp_url'      => 'https://wa.me/6283831520933',
-        'show_phone'        => false, // Default false: nomor telepon/WA hanya tampil jika bernilai true
+        'show_phone'        => true, // Default false: nomor telepon/WA hanya tampil jika bernilai true
         'github_url'        => 'https://github.com/kepinyuuu',
         'linkedin_url'      => null, // CV hanya menulis nama tanpa URL -> sembunyikan
         'instagram_url'     => null, // Tidak ada di CV -> sembunyikan

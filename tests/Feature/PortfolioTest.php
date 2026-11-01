@@ -181,9 +181,59 @@ class PortfolioTest extends TestCase
         $this->assertStringNotContainsString('data-section="pengalaman"', $content);
         $this->assertStringNotContainsString('#pengalaman-', $content);
 
-        // Menu navbar baru menggunakan #proyek
-        $this->assertStringContainsString('href="#proyek"', $content);
-        $this->assertStringContainsString('id="proyek"', $content);
+        // Tidak boleh ada sisa tautan section lama
+        $this->assertStringNotContainsString('href="#proyek"', $content);
+        $this->assertStringNotContainsString('id="proyek"', $content);
+        $this->assertStringNotContainsString('data-section="proyek"', $content);
+
+        // Menu navbar baru menggunakan #projects
+        $this->assertStringContainsString('href="#projects"', $content);
+        $this->assertStringContainsString('id="projects"', $content);
+    }
+
+    public function test_english_navigation_labels_and_accessibility(): void
+    {
+        $response = $this->get('/');
+        $response->assertOk();
+        $content = $response->getContent();
+
+        // 1. Menu navbar desktop, mobile, & footer memuat 5 label bahasa Inggris
+        $expectedLabels = ['Home', 'About', 'Skills', 'Projects', 'Contact'];
+        foreach ($expectedLabels as $label) {
+            $this->assertStringContainsString($label, $content);
+        }
+
+        // 2. Tidak ada label navigasi lama Bahasa Indonesia di navbar & footer
+        $this->assertStringNotContainsString('>Tentang<', $content);
+        $this->assertStringNotContainsString('>Keahlian<', $content);
+        $this->assertStringNotContainsString('>Proyek<', $content);
+        $this->assertStringNotContainsString('>Kontak<', $content);
+        $this->assertStringNotContainsString('>Beranda<', $content);
+
+        // 3. Tombol aksi
+        $this->assertStringContainsString('View Projects', $content);
+        $this->assertStringContainsString('Contact Me', $content);
+        $this->assertStringContainsString('Email', $content);
+        $this->assertStringNotContainsString('Lihat Proyek', $content);
+        $this->assertStringNotContainsString('Hubungi Saya', $content);
+
+        // 4. Aksesibilitas & UI labels
+        $this->assertStringContainsString('Skip to content', $content);
+        $this->assertStringContainsString('Open menu', $content);
+        $this->assertStringContainsString('Close menu', $content);
+        $this->assertStringContainsString('Switch to light mode', $content);
+        $this->assertStringContainsString('Go to About section', $content);
+
+        // 5. Seluruh anchor link mengarah ke id yang benar-benar ada di halaman
+        $anchors = ['#main-content', '#home', '#about', '#skills', '#projects', '#contact'];
+        foreach ($anchors as $anchor) {
+            $id = ltrim($anchor, '#');
+            $this->assertStringContainsString("href=\"{$anchor}\"", $content);
+            $this->assertStringContainsString("id=\"{$id}\"", $content);
+        }
+
+        // 6. html tag mempertahankan lang="id"
+        $this->assertStringContainsString('<html lang="id"', $content);
     }
 
     public function test_project_cards_display_omah_vektor_once(): void
@@ -199,6 +249,39 @@ class PortfolioTest extends TestCase
         // Kartu Perancangan Antarmuka Website juga tampil satu kali
         $secondCardOccurrences = substr_count($content, 'id="project-card-perancangan-antarmuka-website"');
         $this->assertSame(1, $secondCardOccurrences, 'Kartu proyek Perancangan Antarmuka Website harus tampil tepat satu kali.');
+
+        // Kartu Portfolio Pribadi tampil satu kali
+        $thirdCardOccurrences = substr_count($content, 'id="project-card-website-portfolio-pribadi"');
+        $this->assertSame(1, $thirdCardOccurrences, 'Kartu proyek Website Portfolio Pribadi harus tampil tepat satu kali.');
+    }
+
+    public function test_three_project_cards_are_present(): void
+    {
+        $response = $this->get('/');
+        $response->assertOk();
+
+        $response->assertSee('Website UMKM Omah Vektor');
+        $response->assertSee('Perancangan Antarmuka Website');
+        $response->assertSee('Website Portfolio Pribadi');
+
+        // Verifikasi proyek ketiga memiliki poin yang benar
+        $response->assertSee('Merancang tata letak, tipografi, dan palet warna untuk mode gelap dan terang.');
+        $response->assertSee('Membangun halaman responsif untuk desktop, tablet, dan HP.');
+        $response->assertSee('Menyajikan konten profil, keahlian, dan proyek dari satu file konfigurasi.');
+    }
+
+    public function test_demo_github_buttons_hidden_when_urls_empty(): void
+    {
+        $response = $this->get('/');
+        $response->assertOk();
+        $content = $response->getContent();
+
+        // Semua proyek memiliki demo_url dan github_url null —
+        // tidak boleh ada link tombol Demo atau GitHub aktif di kartu
+        // (tombol hanya muncul di modal via x-show Alpine, tidak dirender di HTML statik)
+        // Verifikasi tidak ada href ke null atau href="#" pada link Demo/GitHub
+        $this->assertStringNotContainsString('href="null"', $content);
+        $this->assertStringNotContainsString(':href="null"', $content);
     }
 
     public function test_experience_points_appear_in_project_details(): void
@@ -223,10 +306,17 @@ class PortfolioTest extends TestCase
 
         // Omah Vektor memiliki sampul yang valid
         $response->assertSee('Sampul Website UMKM Omah Vektor');
-
-        // Perancangan Antarmuka Website memiliki fallback bertema (tanpa img tag)
-        $response->assertDontSee('Sampul Perancangan Antarmuka Website');
         $response->assertSee('Perancangan Antarmuka Website');
+
+        // Jika cover bernilai null, fallback bertema ditampilkan tanpa tag img palsu
+        config([
+            'portfolio.projects.1.cover' => null,
+        ]);
+
+        $responseFallback = $this->get('/');
+        $responseFallback->assertOk();
+        $responseFallback->assertDontSee('Sampul Perancangan Antarmuka Website');
+        $responseFallback->assertSee('Perancangan Antarmuka Website');
     }
 
     public function test_no_img_tags_with_empty_src_or_alt(): void

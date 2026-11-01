@@ -181,4 +181,5 @@ Berkas [`config/portfolio.php`](config/portfolio.php) adalah pusat pengaturan da
 - **`profile`**: Berisi nama, gelar, headline hero, deskripsi, bio, riwayat pendidikan, minat, pengalaman kerja, foto, dan tautan sosial media (GitHub, LinkedIn, Instagram, dll.). Bagian yang kosong akan disembunyikan secara otomatis pada halaman publik.
 - **`skills`**: Daftar array keahlian dengan kategori `'general'` (Development), `'design'` (Desain), atau `'tools'` (Perangkat Kerja), serta level kemahiran 1-100%.
 - **`projects`**: Daftar proyek aplikasi/web lengkap dengan deskripsi, teknologi yang dipakai, link demo, dan link GitHub.
+- **`navigation`**: Pusat konfigurasi label navigasi (English: `Home`, `About`, `Skills`, `Projects`, `Contact`), tautan anchor (`#home`, `#about`, `#skills`, `#projects`, `#contact`), teks aksi (`View Projects`, `Contact Me`, `Email`), serta teks aksesibilitas (`aria-label`, `title`, skip link, toggle tema).
 - **`design_works`**: Galeri visual/desain UI/UX yang mendukung lightbox viewer.

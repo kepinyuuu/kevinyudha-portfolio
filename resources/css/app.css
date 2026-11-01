@@ -310,9 +310,52 @@ body {
     padding-bottom: clamp(4.5rem, 8vw, 7.5rem);
 }
 
+/* Projects section: padding lebih ramping ~25-30% lebih kecil dari editorial-section */
+.projects-section {
+    padding-top: clamp(3rem, 5.5vw, 5rem);
+    padding-bottom: clamp(3rem, 5.5vw, 5rem);
+}
+
 /* Scroll margin agar judul section tidak tersembunyi di balik navbar saat anchor navigasi */
 section[id] {
     scroll-margin-top: 100px;
+}
+
+/* ── PROJECT CARD COMPACT ─────────────────────────────────────────────────── */
+/* Padding kartu: 16-20px, lebih ramping dari depth-card default */
+.project-card {
+    padding: 1rem; /* 16px */
+    border-radius: var(--radius-xl, 1rem);
+}
+
+@media (min-width: 640px) {
+    .project-card {
+        padding: 1.25rem; /* 20px */
+    }
+}
+
+/* Batasi tinggi sampul ~200-220px di desktop (grid 3 kolom → lebar kartu lebih sempit) */
+.project-cover-frame {
+    max-height: 220px;
+}
+
+/* Tag compact: 12px, lebih kecil dari tag-clean default */
+.tag-compact {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1875rem 0.5rem; /* ~3px 8px */
+    font-size: 0.75rem; /* 12px */
+    font-weight: 600;
+    border-radius: 9999px;
+    background-color: var(--surface-tint);
+    color: var(--foreground);
+    border: 1px solid var(--surface-border);
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+.tag-compact.tag-extra {
+    opacity: 0.6;
 }
 
 /* ── LIQUID GLASS NAVBAR (Tingkat 1: Semua Browser) ───────────────────────── */

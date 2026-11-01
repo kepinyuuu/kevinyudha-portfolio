@@ -35,6 +35,11 @@
 </head>
 <body class="bg-[var(--background)] text-[var(--foreground)] font-sans antialiased overflow-x-hidden relative min-h-screen">
 
+    {{-- ═══ SKIP TO CONTENT (Aksesibilitas Keyboard) ════════════════════════════ --}}
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--surface-tint)] focus:text-[var(--foreground)] focus:rounded-lg focus:border focus:border-[var(--glass-border)] focus:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--foreground)] transition-all font-semibold text-sm" lang="en">
+        {{ config('portfolio.navigation.ui.skip_to_content', 'Skip to content') }}
+    </a>
+
     {{-- ═══ SCROLL PROGRESS BAR (Atas layar) ════════════════════════════════════ --}}
     <div id="scroll-progress-bar" class="fixed top-0 left-0 right-0 h-[2px] z-[60] bg-transparent pointer-events-none" aria-hidden="true">
         <div id="scroll-progress-fill" class="h-full w-0 bg-gradient-to-r from-neutral-400 via-white to-neutral-200 transition-[width] duration-75"></div>

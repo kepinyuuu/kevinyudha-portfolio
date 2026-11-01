@@ -19,8 +19,8 @@ Alpine.data('projectModal', (projects = []) => ({
 
     checkHash() {
         const hash = window.location.hash;
-        if (hash && hash.startsWith('#proyek-')) {
-            const slug = hash.replace('#proyek-', '');
+        if (hash && (hash.startsWith('#projects-') || hash.startsWith('#proyek-'))) {
+            const slug = hash.replace(/^#(projects|proyek)-/, '');
             const found = this.projects.find(p => p.slug === slug);
             if (found) {
                 this.openProject(found.slug, null, false);
@@ -40,8 +40,8 @@ Alpine.data('projectModal', (projects = []) => ({
         this.isOpen = true;
         document.body.style.overflow = 'hidden';
 
-        if (updateHash && window.location.hash !== '#proyek-' + slug) {
-            history.pushState({ modal: slug }, '', '#proyek-' + slug);
+        if (updateHash && window.location.hash !== '#projects-' + slug) {
+            history.pushState({ modal: slug }, '', '#projects-' + slug);
         }
 
         this.$nextTick(() => {
@@ -60,8 +60,8 @@ Alpine.data('projectModal', (projects = []) => ({
         this.activeGalleryIndex = null;
         document.body.style.overflow = '';
 
-        if (updateHash && window.location.hash.startsWith('#proyek-')) {
-            history.pushState(null, '', window.location.pathname + '#proyek');
+        if (updateHash && (window.location.hash.startsWith('#projects-') || window.location.hash.startsWith('#proyek-'))) {
+            history.pushState(null, '', window.location.pathname + '#projects');
         }
 
         if (this.triggerEl) {
@@ -183,6 +183,15 @@ function initThemeToggle() {
     const toggleBtn = document.getElementById('theme-toggle');
     if (!toggleBtn) return;
 
+    function updateAria(isDark) {
+        const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+        toggleBtn.setAttribute('aria-label', label);
+        toggleBtn.setAttribute('title', label);
+    }
+
+    // Set initial aria state
+    updateAria(document.documentElement.classList.contains('dark'));
+
     toggleBtn.addEventListener('click', () => {
         const isDark = document.documentElement.classList.toggle('dark');
         if (isDark) {
@@ -192,19 +201,22 @@ function initThemeToggle() {
             document.documentElement.classList.add('light');
             localStorage.setItem('theme', 'light');
         }
+        updateAria(isDark);
     });
 
     // Sinkronisasi bila preferensi OS berubah dan user belum memilih manual
     if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
             if (!localStorage.getItem('theme')) {
-                if (e.matches) {
+                const prefersDark = e.matches;
+                if (prefersDark) {
                     document.documentElement.classList.add('dark');
                     document.documentElement.classList.remove('light');
                 } else {
                     document.documentElement.classList.remove('dark');
                     document.documentElement.classList.add('light');
                 }
+                updateAria(prefersDark);
             }
         });
     }
@@ -314,6 +326,9 @@ function initNavbarObserver() {
     });
 
     if (sections.length && 'IntersectionObserver' in window) {
+        // rootMargin diperhitungkan dari tinggi navbar (~90px) + margin atas.
+        // Zone aktif: antara 40% dari atas dan 55% dari bawah viewport,
+        // sehingga section tinggi seperti Projects tidak "mencuri" item sebelumnya.
         const observer = new IntersectionObserver((entries) => {
             if (isClickScrolling) return;
 
@@ -328,15 +343,22 @@ function initNavbarObserver() {
             });
         }, {
             root: null,
-            rootMargin: '-20% 0px -55% 0px',
+            rootMargin: '-40% 0px -55% 0px',
             threshold: 0
         });
 
         sections.forEach(sec => observer.observe(sec));
 
-        // Penanganan saat pengguna scroll mendekati dasar halaman (misal section kontak pendek)
+        // Penanganan saat pengguna scroll mendekati atas (home) atau dasar halaman (kontak)
         window.addEventListener('scroll', () => {
             if (isClickScrolling) return;
+            if (window.scrollY < 80) {
+                const homeLink = navLinks.find(l => l.dataset.section === 'home');
+                if (homeLink && homeLink !== activeLink) {
+                    setActive(homeLink, !isHovering);
+                }
+                return;
+            }
             const scrollPos = window.innerHeight + window.scrollY;
             const totalHeight = document.documentElement.scrollHeight;
             if (scrollPos >= totalHeight - 40) {

@@ -115,7 +115,7 @@ return [
             'role'       => 'UI/UX Designer',
             'summary'    => 'Perancangan antarmuka website yang nyaman digunakan melalui proses analisis kebutuhan pengguna, wireframe, mockup, prototype, dan evaluasi berkala.',
             'tags'       => ['UI/UX', 'Figma', 'Wireframe', 'Mockup', 'Prototype'],
-            'cover'      => null,
+            'cover'      => 'images/experience/perancangan-antarmuka/dashboard.png',
             'gallery'    => [],
             'points'     => [
                 'Menganalisis kebutuhan pengguna sebagai dasar perancangan antarmuka website.',
@@ -127,6 +127,57 @@ return [
             'github_url' => null,
             'is_featured' => true,
             'sort_order'  => 2,
+        ],
+        [
+            'title'      => 'Website Portfolio Pribadi',
+            'role'       => 'Web Developer & Designer',
+            'summary'    => 'Website portfolio pribadi yang menampilkan profil, keahlian, dan proyek, dengan mode gelap dan terang serta tampilan responsif.',
+            'tags'       => ['Laravel', 'Blade', 'Tailwind CSS', 'Alpine.js', 'Responsive'],
+            'cover'      => 'images/projects/portfolio/cover.jpg', // Tampilkan blok bertema jika file belum ada
+            'gallery'    => [],
+            'points'     => [
+                'Merancang tata letak, tipografi, dan palet warna untuk mode gelap dan terang.',
+                'Membangun halaman responsif untuk desktop, tablet, dan HP.',
+                'Menyajikan konten profil, keahlian, dan proyek dari satu file konfigurasi.',
+            ],
+            'demo_url'   => null, // Sembunyikan tombol Demo sampai URL diisi
+            'github_url' => null, // Sembunyikan tombol GitHub sampai URL diisi
+            'is_featured' => true,
+            'sort_order'  => 3,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Navigasi (satu sumber kebenaran untuk label, href, dan aria)
+    |--------------------------------------------------------------------------
+    */
+    'navigation' => [
+        'items' => [
+            ['id' => 'home',     'label' => 'Home',     'href' => '#home',     'aria_label' => 'Go to Home section',     'title' => 'Go to Home section'],
+            ['id' => 'about',    'label' => 'About',    'href' => '#about',    'aria_label' => 'Go to About section',    'title' => 'Go to About section'],
+            ['id' => 'skills',   'label' => 'Skills',   'href' => '#skills',   'aria_label' => 'Go to Skills section',   'title' => 'Go to Skills section'],
+            ['id' => 'projects', 'label' => 'Projects', 'href' => '#projects', 'aria_label' => 'Go to Projects section', 'title' => 'Go to Projects section'],
+            ['id' => 'contact',  'label' => 'Contact',  'href' => '#contact',  'aria_label' => 'Go to Contact section',  'title' => 'Go to Contact section'],
+        ],
+        'actions' => [
+            'view_projects' => 'View Projects',
+            'contact_me'    => 'Contact Me',
+            'email'         => 'Email',
+            'view_details'  => 'View details',
+        ],
+        'ui' => [
+            'skip_to_content'   => 'Skip to content',
+            'open_menu'         => 'Open menu',
+            'close_menu'        => 'Close menu',
+            'switch_light_mode' => 'Switch to light mode',
+            'switch_dark_mode'  => 'Switch to dark mode',
+        ],
+        'sections' => [
+            'about'    => ['eyebrow' => 'About',    'title' => 'About'],
+            'skills'   => ['eyebrow' => 'Skills',   'title' => 'Skills'],
+            'projects' => ['eyebrow' => 'Projects', 'title' => 'Projects'],
+            'contact'  => ['eyebrow' => 'Contact',  'title' => 'Contact'],
         ],
     ],
 

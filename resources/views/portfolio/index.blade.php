@@ -1,6 +1,11 @@
 <x-layouts.app :title="($profile->name ?? 'Kevin Yudha Pratama') . ' — ' . ($profile->title ?? 'Web Development & Designer')" :meta-description="$profile->hero_description ?? 'Portfolio Kevin Yudha Pratama — Web Development & Designer'">
 
     @php
+        $nav = $nav ?? config('portfolio.navigation', []);
+        $navItems = $nav['items'] ?? [];
+        $navActions = $nav['actions'] ?? [];
+        $navUi = $nav['ui'] ?? [];
+        $navSections = $nav['sections'] ?? [];
         $shortName = config('portfolio.profile.short_name', 'Kevin Yudha P.');
         $location = config('portfolio.profile.location', 'Bangsri, Jepara, Jawa Tengah');
         $showPhone = (bool) config('portfolio.profile.show_phone', false);
@@ -25,7 +30,7 @@
         <div id="floating-navbar" class="liquid-glass-pill pointer-events-auto flex items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 h-14 sm:h-[68px] md:h-[70px] w-fit max-w-[calc(100vw-1.5rem)] shadow-2xl transition-all duration-300">
             
             {{-- Logo / Nama Singkat (Kevin Yudha P.) --}}
-            <a href="#home" class="flex items-center gap-2 px-2.5 py-1.5 min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] rounded-full shrink-0 group" aria-label="Beranda Kevin Yudha P.">
+            <a href="#home" class="flex items-center gap-2 px-2.5 py-1.5 min-h-[44px] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--foreground)] rounded-full shrink-0 group" aria-label="{{ $shortName }} — Home" title="{{ $shortName }} — Home">
                 <span class="font-bold text-sm sm:text-[15px] md:text-base tracking-tight text-[var(--glass-text-hover)] transition-colors">
                     {{ $shortName }}
                 </span>
@@ -35,17 +40,21 @@
             <div class="h-6 w-px bg-[var(--glass-border)] mx-0.5 shrink-0 hidden md:block" aria-hidden="true"></div>
 
             {{-- Desktop Navigation Links with Sliding Glass Bubble (Teks 15-16px, Touch Target min 44px) --}}
-            <nav class="hidden md:flex items-center relative nav-links-track" aria-label="Navigasi Utama">
+            <nav class="hidden md:flex items-center relative nav-links-track" aria-label="Main Navigation">
                 {{-- Gelembung Kaca yang bergeser halus mengikuti item aktif --}}
                 <div id="nav-bubble" class="nav-bubble" aria-hidden="true"></div>
 
-                <a href="#about" class="glass-nav-link active" data-section="about" aria-current="true">Tentang</a>
-                <a href="#skills" class="glass-nav-link" data-section="skills">Keahlian</a>
-                <a href="#proyek" class="glass-nav-link" data-section="proyek">Proyek</a>
-                @if($hasDesignWorks)
-                <a href="#design" class="glass-nav-link" data-section="design">Desain</a>
-                @endif
-                <a href="#contact" class="glass-nav-link" data-section="contact">Kontak</a>
+                @foreach($navItems as $item)
+                <a href="{{ $item['href'] }}"
+                   class="glass-nav-link {{ $loop->first ? 'active' : '' }}"
+                   data-section="{{ $item['id'] }}"
+                   aria-label="{{ $item['aria_label'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   title="{{ $item['title'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   {{ $loop->first ? 'aria-current="true"' : '' }}
+                   lang="en">
+                    {{ $item['label'] }}
+                </a>
+                @endforeach
             </nav>
 
             {{-- Divider --}}
@@ -58,20 +67,20 @@
                     id="theme-toggle"
                     type="button"
                     class="glass-btn p-2 sm:p-2.5 min-h-[44px] min-w-[44px]"
-                    aria-label="Ganti mode terang atau gelap"
-                    title="Ganti tema">
+                    aria-label="{{ $navUi['switch_light_mode'] ?? 'Switch to light mode' }}"
+                    title="{{ $navUi['switch_light_mode'] ?? 'Switch to light mode' }}">
                     <!-- Sun icon (mode gelap aktif) -->
                     <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
                     <!-- Moon icon (mode terang aktif) -->
                     <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z"/></svg>
                 </button>
 
-                {{-- Action Button: "Email" (Aksi navbar beda label dari hero untuk hindari duplikasi) --}}
-                <a href="mailto:{{ $profile->email }}" class="glass-btn text-xs sm:text-sm font-semibold px-3.5 sm:px-5 min-h-[44px]" aria-label="Kirim Email ke {{ $profile->name ?? 'Kevin' }}">
+                {{-- Action Button: "Email" --}}
+                <a href="mailto:{{ $profile->email }}" class="glass-btn text-xs sm:text-sm font-semibold px-3.5 sm:px-5 min-h-[44px]" aria-label="Send email to {{ $profile->name ?? 'Kevin' }}" title="Send email to {{ $profile->name ?? 'Kevin' }}" lang="en">
                     <svg class="w-4 h-4 sm:w-[18px] sm:h-[18px] mr-1.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"/>
                     </svg>
-                    <span>Email</span>
+                    <span>{{ $navActions['email'] ?? 'Email' }}</span>
                 </a>
 
                 {{-- Mobile Hamburger Glass Button (Hanya muncul di bawah breakpoint tablet) --}}
@@ -79,8 +88,10 @@
                     type="button"
                     @click="mobileOpen = !mobileOpen"
                     class="glass-btn p-2 min-h-[44px] min-w-[44px] md:hidden"
-                    aria-label="Buka navigasi mobile"
-                    :aria-expanded="mobileOpen.toString()">
+                    :aria-label="mobileOpen ? '{{ $navUi['close_menu'] ?? 'Close menu' }}' : '{{ $navUi['open_menu'] ?? 'Open menu' }}'"
+                    :title="mobileOpen ? '{{ $navUi['close_menu'] ?? 'Close menu' }}' : '{{ $navUi['open_menu'] ?? 'Open menu' }}'"
+                    :aria-expanded="mobileOpen.toString()"
+                    aria-label="{{ $navUi['open_menu'] ?? 'Open menu' }}">
                     <svg x-show="!mobileOpen" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
                     </svg>
@@ -102,17 +113,23 @@
             x-transition:leave-start="opacity-100 translate-y-0 scale-100"
             x-transition:leave-end="opacity-0 -translate-y-2 scale-95"
             class="pointer-events-auto mt-2 w-full max-w-xs liquid-glass-pill p-3 shadow-2xl md:hidden">
-            <nav class="flex flex-col space-y-1 text-center" aria-label="Navigasi Mobile">
-                <a href="#about" @click="mobileOpen = false" class="glass-nav-link justify-center py-2.5 min-h-[44px]">Tentang</a>
-                <a href="#skills" @click="mobileOpen = false" class="glass-nav-link justify-center py-2.5 min-h-[44px]">Keahlian</a>
-                <a href="#proyek" @click="mobileOpen = false" class="glass-nav-link justify-center py-2.5 min-h-[44px]">Proyek</a>
-                @if($hasDesignWorks)
-                <a href="#design" @click="mobileOpen = false" class="glass-nav-link justify-center py-2.5 min-h-[44px]">Desain</a>
-                @endif
-                <a href="#contact" @click="mobileOpen = false" class="glass-nav-link justify-center py-2.5 min-h-[44px]">Kontak</a>
+            <nav class="flex flex-col space-y-1 text-center" aria-label="Mobile Navigation">
+                @foreach($navItems as $item)
+                <a href="{{ $item['href'] }}"
+                   @click="mobileOpen = false"
+                   class="glass-nav-link justify-center py-2.5 min-h-[44px]"
+                   aria-label="{{ $item['aria_label'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   title="{{ $item['title'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   lang="en">
+                    {{ $item['label'] }}
+                </a>
+                @endforeach
             </nav>
         </div>
     </header>
+
+    {{-- ═══ MAIN CONTENT CONTAINER (Target Skip Link) ════════════════════════════ --}}
+    <main id="main-content">
 
     {{-- ═══ HERO SECTION (Dengan Grid Halus, Kartu Profil 3D Tilt, dan Kedalaman Efek) ═══ --}}
     <section id="home" class="relative overflow-hidden pt-28 sm:pt-36 md:pt-40 pb-20 sm:pb-28 border-b border-[var(--border)]">
@@ -147,14 +164,14 @@
 
                     {{-- Dual CTAs: Tombol Utama Kaca Terang dengan Sheen Melintas + Tombol Sekunder Outline Kaca --}}
                     <div class="flex flex-wrap items-center gap-4 w-full sm:w-auto">
-                        <a href="#proyek" class="btn-glass-primary group w-full sm:w-auto text-center">
-                            <span>Lihat Proyek</span>
-                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <a href="#projects" class="btn-glass-primary group w-full sm:w-auto text-center" aria-label="{{ $navActions['view_projects'] ?? 'View Projects' }}" title="{{ $navActions['view_projects'] ?? 'View Projects' }}" lang="en">
+                            <span>{{ $navActions['view_projects'] ?? 'View Projects' }}</span>
+                            <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                             </svg>
                         </a>
-                        <a href="#contact" class="btn-glass-outline w-full sm:w-auto text-center">
-                            <span>Hubungi Saya</span>
+                        <a href="#contact" class="btn-glass-outline w-full sm:w-auto text-center" aria-label="{{ $navActions['contact_me'] ?? 'Contact Me' }}" title="{{ $navActions['contact_me'] ?? 'Contact Me' }}" lang="en">
+                            <span>{{ $navActions['contact_me'] ?? 'Contact Me' }}</span>
                         </a>
                     </div>
 
@@ -237,9 +254,9 @@
                 {{-- Left: Bio Singkat & Pendidikan --}}
                 <div class="lg:col-span-7 space-y-6 scroll-reveal">
                     <div>
-                        <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2">Profil</p>
-                        <h2 class="section-title mb-6">
-                            Tentang Saya
+                        <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2" lang="en">{{ $navSections['about']['eyebrow'] ?? 'About' }}</p>
+                        <h2 class="section-title mb-6" lang="en">
+                            {{ $navSections['about']['title'] ?? 'About' }}
                         </h2>
                     </div>
 
@@ -303,8 +320,8 @@
     <section id="skills" class="editorial-section border-b border-[var(--border)] bg-[var(--background)]">
         <div class="editorial-container">
             <div class="mb-12 scroll-reveal">
-                <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2">Kompetensi</p>
-                <h2 class="section-title">Keahlian</h2>
+                <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2" lang="en">{{ $navSections['skills']['eyebrow'] ?? 'Skills' }}</p>
+                <h2 class="section-title" lang="en">{{ $navSections['skills']['title'] ?? 'Skills' }}</h2>
             </div>
 
             @php
@@ -391,99 +408,104 @@
         })->values()->all();
     @endphp
 
-    <section id="proyek"
+    <section id="projects"
         x-data="projectModal({{ Js::from($projectsData) }})"
         @keydown.window="handleKeyDown($event)"
-        class="editorial-section border-b border-[var(--border)] bg-[var(--background)]">
+        class="projects-section border-b border-[var(--border)] bg-[var(--background)]">
         <div class="editorial-container">
-            <div class="mb-12 scroll-reveal">
-                <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2">Portofolio</p>
-                <h2 class="section-title">Proyek Pilihan</h2>
+            <div class="mb-8 scroll-reveal">
+                <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2" lang="en">{{ $navSections['projects']['eyebrow'] ?? 'Projects' }}</p>
+                <h2 class="section-title" lang="en">{{ $navSections['projects']['title'] ?? 'Projects' }}</h2>
             </div>
 
             @if(empty($projectsData))
-            <div class="text-center py-20 depth-card scroll-reveal">
+            <div class="text-center py-16 depth-card scroll-reveal">
                 <p class="text-base text-[var(--muted)]">Belum ada proyek yang ditampilkan.</p>
             </div>
             @else
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            {{-- Grid 3 kolom ≥1024px, 2 tablet, 1 mobile; gap 20-24px --}}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 items-stretch">
                 @foreach($projectsData as $project)
-                <div class="h-full scroll-reveal" style="transition-delay: {{ $loop->index * 90 }}ms">
+                @php $visibleTags = array_slice($project['tags'], 0, 4); $extraTags = count($project['tags']) - 4; @endphp
+                <div class="h-full scroll-reveal" style="transition-delay: {{ $loop->index * 70 }}ms">
                     <button
                         type="button"
                         @click="openProject('{{ $project['slug'] }}', $el)"
                         id="project-card-{{ $project['slug'] }}"
-                        class="depth-card p-6 sm:p-7 flex flex-col justify-between text-left w-full h-full group cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--foreground)]"
+                        class="project-card depth-card flex flex-col justify-between text-left w-full h-full group cursor-pointer focus-visible:outline-2 focus-visible:outline-[var(--foreground)]"
                         aria-haspopup="dialog"
                         aria-expanded="false">
                         
                         <div class="w-full">
-                            {{-- Gambar sampul (aspect 16/10) atau Fallback bertema bersih --}}
-                            <div class="aspect-[16/10] w-full rounded-xl overflow-hidden mb-5 relative bg-[var(--secondary)] border border-[var(--border)]">
+                            {{-- Sampul: aspect 16/10, maks ~200px di desktop, object-fit cover --}}
+                            <div class="aspect-[16/10] w-full rounded-lg overflow-hidden mb-4 relative bg-[var(--secondary)] border border-[var(--border)] project-cover-frame">
                                 @if($project['has_cover'])
                                     <img
                                         src="{{ asset($project['cover']) }}"
                                         alt="Sampul {{ $project['title'] }}"
                                         loading="lazy"
                                         decoding="async"
-                                        class="w-full h-full object-cover transition-transform duration-300 ease-out group-hover:scale-[1.03]">
+                                        class="w-full h-full object-cover object-top transition-transform duration-300 ease-out group-hover:scale-[1.03]">
                                 @else
-                                    {{-- Themed plain block: permukaan kaca dengan ikon sederhana, bukan gambar palsu --}}
-                                    <div class="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-[var(--surface-tint)] to-[var(--secondary)] relative">
-                                        <div class="w-12 h-12 rounded-xl bg-[var(--surface-tint)] border border-[var(--surface-border)] flex items-center justify-center text-[var(--foreground)] mb-2.5 shadow-xs group-hover:scale-105 transition-transform duration-300">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
+                                    {{-- Blok bertema: permukaan kaca dengan ikon sederhana, bukan gambar palsu --}}
+                                    <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br from-[var(--surface-tint)] to-[var(--secondary)]">
+                                        <div class="w-9 h-9 rounded-lg bg-[var(--surface-tint)] border border-[var(--surface-border)] flex items-center justify-center text-[var(--foreground)] mb-2 shadow-xs group-hover:scale-105 transition-transform duration-300">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z"/>
                                             </svg>
                                         </div>
-                                        <span class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)]">{{ $project['role'] }}</span>
+                                        <span class="text-[11px] font-semibold tracking-wider uppercase text-[var(--muted)]">{{ $project['role'] }}</span>
                                     </div>
                                 @endif
                             </div>
 
-                            {{-- Role Label --}}
-                            <div class="flex items-center gap-2 mb-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[var(--foreground)]"></span>
-                                <span class="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">{{ $project['role'] }}</span>
+                            {{-- Role Label: 11px kapital --}}
+                            <div class="flex items-center gap-1.5 mb-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[var(--foreground)] shrink-0"></span>
+                                <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">{{ $project['role'] }}</span>
                             </div>
 
-                            {{-- Title --}}
-                            <h3 class="text-lg sm:text-xl font-bold text-[var(--foreground)] group-hover:opacity-80 transition-opacity mb-2">
+                            {{-- Judul: 18px --}}
+                            <h3 class="text-[18px] font-bold text-[var(--foreground)] group-hover:opacity-80 transition-opacity mb-1.5 leading-snug">
                                 {{ $project['title'] }}
                             </h3>
 
-                            {{-- Summary --}}
+                            {{-- Ringkasan: 14px, maks 3 baris --}}
                             @if(filled($project['summary']))
-                            <p class="text-sm text-[var(--muted)] leading-relaxed mb-4 line-clamp-3">
+                            <p class="text-[14px] text-[var(--muted)] leading-relaxed mb-3 line-clamp-3">
                                 {{ $project['summary'] }}
                             </p>
                             @endif
 
-                            {{-- Tags --}}
+                            {{-- Tags: 12px, maks 4 terlihat + "+N" --}}
                             @if(!empty($project['tags']))
-                            <div class="flex flex-wrap gap-1.5 mb-2">
-                                @foreach($project['tags'] as $tag)
-                                <span class="tag-clean">{{ $tag }}</span>
+                            <div class="flex flex-wrap gap-1 mb-1.5">
+                                @foreach($visibleTags as $tag)
+                                <span class="tag-compact">{{ $tag }}</span>
                                 @endforeach
+                                @if($extraTags > 0)
+                                <span class="tag-compact tag-extra">+{{ $extraTags }}</span>
+                                @endif
                             </div>
                             @endif
                         </div>
 
-                        {{-- Petunjuk "Lihat detail" dengan panah kecil --}}
-                        <div class="pt-4 border-t border-[var(--border)] mt-4 w-full flex items-center justify-between text-xs sm:text-sm font-semibold text-[var(--foreground)]">
+                        {{-- Petunjuk "Lihat detail" --}}
+                        <div class="pt-3 border-t border-[var(--border)] mt-3 w-full flex items-center justify-between text-xs font-semibold text-[var(--foreground)]">
                             <span>Lihat detail</span>
-                            <svg class="w-4 h-4 transform group-hover:translate-x-1.5 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <svg class="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/>
                             </svg>
                         </div>
 
-                        {{-- No-JS Fallback: Poin tetap dapat dibaca jika JavaScript gagal dimuat --}}
+                        {{-- No-JS Fallback --}}
                         <noscript>
-                            <div class="mt-4 pt-4 border-t border-[var(--border)] text-left w-full">
-                                <p class="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-2">Detail Proyek:</p>
-                                <ul class="space-y-2 text-sm text-[var(--muted)]">
+                            <div class="mt-3 pt-3 border-t border-[var(--border)] text-left w-full">
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-1.5">Detail Proyek:</p>
+                                <ul class="space-y-1.5 text-[13px] text-[var(--muted)]">
                                     @foreach($project['points'] as $point)
-                                    <li class="flex items-start gap-2">
-                                        <span class="text-[var(--foreground)] mt-1 text-xs">•</span>
+                                    <li class="flex items-start gap-1.5">
+                                        <span class="text-[var(--foreground)] mt-1 text-[10px]">•</span>
                                         <span class="leading-relaxed">{{ $point }}</span>
                                     </li>
                                     @endforeach
@@ -755,9 +777,9 @@
                 {{-- Left: Informasi Kontak --}}
                 <div class="lg:col-span-5 space-y-6 scroll-reveal">
                     <div>
-                        <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2">Kontak</p>
-                        <h2 class="section-title mb-4">
-                            Mari Berkolaborasi.
+                        <p class="text-xs font-semibold tracking-wider uppercase text-[var(--muted)] mb-2" lang="en">{{ $navSections['contact']['eyebrow'] ?? 'Contact' }}</p>
+                        <h2 class="section-title mb-4" lang="en">
+                            {{ $navSections['contact']['title'] ?? 'Contact' }}
                         </h2>
                         <p class="body-lead text-[var(--muted)]">
                             Tertarik untuk berdiskusi seputar proyek website atau desain antarmuka? Silakan kirimkan pesan melalui formulir atau kontak di bawah ini.
@@ -907,17 +929,23 @@
         </div>
     </section>
 
+    </main>
+
     {{-- ═══ MINIMALIST EDITORIAL FOOTER ══════════════════════════════════════════ --}}
     <footer class="py-10 bg-[var(--background)]">
         <div class="editorial-container flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--muted)]">
             <p>© {{ date('Y') }} {{ $profile->name ?? 'Kevin Yudha Pratama' }}. All rights reserved.</p>
 
-            <nav class="flex items-center gap-6" aria-label="Navigasi Footer">
-                <a href="#home" class="hover:text-[var(--foreground)] transition-colors">Beranda</a>
-                <a href="#about" class="hover:text-[var(--foreground)] transition-colors">Tentang</a>
-                <a href="#skills" class="hover:text-[var(--foreground)] transition-colors">Keahlian</a>
-                <a href="#proyek" class="hover:text-[var(--foreground)] transition-colors">Proyek</a>
-                <a href="#contact" class="hover:text-[var(--foreground)] transition-colors">Kontak</a>
+            <nav class="flex items-center gap-6" aria-label="Footer Navigation">
+                @foreach($navItems as $item)
+                <a href="{{ $item['href'] }}"
+                   class="hover:text-[var(--foreground)] transition-colors"
+                   aria-label="{{ $item['aria_label'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   title="{{ $item['title'] ?? ('Go to ' . $item['label'] . ' section') }}"
+                   lang="en">
+                    {{ $item['label'] }}
+                </a>
+                @endforeach
             </nav>
         </div>
     </footer>

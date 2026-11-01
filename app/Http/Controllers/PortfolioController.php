@@ -109,10 +109,11 @@ class PortfolioController extends Controller
         }
 
         $categories = $designWorks->pluck('category')->unique()->values();
-        $languages   = config('portfolio.languages', []);
+        $languages  = config('portfolio.languages', []);
+        $nav        = config('portfolio.navigation', []);
 
         return view('portfolio.index', compact(
-            'profile', 'skills', 'projects', 'designWorks', 'categories', 'languages'
+            'profile', 'skills', 'projects', 'designWorks', 'categories', 'languages', 'nav'
         ));
     }
 

@@ -6,6 +6,10 @@ mkdir -p /tmp/storage/framework/cache/data
 mkdir -p /tmp/storage/framework/views
 mkdir -p /tmp/storage/framework/sessions
 mkdir -p /tmp/storage/logs
+mkdir -p /tmp/storage/app/public
+
+# Inisialisasi file SQLite kosong jika SQLite digunakan
+touch /tmp/storage/database.sqlite 2>/dev/null || true
 
 # Cache routes and views for faster response times.
 # NOTE: config:cache is intentionally NOT run here — env vars are injected at

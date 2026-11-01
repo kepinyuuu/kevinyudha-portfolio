@@ -9,91 +9,109 @@ use App\Models\Skill;
 use Illuminate\Database\Seeder;
 
 /**
- * Mengisi data contoh (bertanda "[CONTOH]") hanya untuk APP_ENV=local.
- * Tidak pernah dijalankan di production.
+ * Seeder pengembang: membaca dari config/portfolio.php jika diisi (bukan 'ISI'),
+ * tanpa data dummy tiruan hardcoded.
  */
 class LocalDevSeeder extends Seeder
 {
     public function run(): void
     {
         if (app()->environment('production')) {
-            $this->command->warn('LocalDevSeeder dilewati — tidak dijalankan di production.');
+            $this->command->warn('LocalDevSeeder dilewati — tidak dijalankan di environment production.');
             return;
         }
 
-        // ── Profile ───────────────────────────────────────────────────────────
-        Profile::updateOrCreate(['id' => 1], [
-            'name'             => 'Kevin Yudha Pratama',
-            'title'            => 'UI/UX Designer & Developer',
-            'bio'              => '[CONTOH] Saya adalah seorang UI/UX Designer & Developer yang passionate dalam menciptakan pengalaman digital yang indah dan fungsional. Menggabungkan estetika desain dengan keahlian teknis untuk membangun produk yang tidak hanya terlihat bagus, tetapi juga bekerja dengan sempurna.',
-            'education'        => '[CONTOH] Universitas — Teknik Informatika',
-            'education_year'   => '2021 – Sekarang',
-            'interests'        => 'UI/UX Design, Web Development, Typography, Branding, Photography',
-            'experience'       => null,
-            'email'            => 'kevin@example.com',
-            'github_url'       => 'https://github.com/kevindev-example',
-            'linkedin_url'     => 'https://linkedin.com/in/kevindev-example',
-            'instagram_url'    => null,
-            'other_social_name'=> null,
-            'other_social_url' => null,
-            'photo'            => null,
-            'hero_headline'    => "Designing Experiences,\nBuilding the Web.",
-            'hero_description' => '[CONTOH] UI/UX Designer & Developer yang memadukan kreativitas visual dengan kemampuan teknis untuk menciptakan produk digital yang berkesan.',
-            'about_extra'      => null,
-        ]);
+        // ── 1. Profile dari config/portfolio.php ─────────────────────────────
+        $cfgProfile = config('portfolio.profile', []);
+        $profileData = [];
 
-        // ── Skills ────────────────────────────────────────────────────────────
-        $skills = [
-            ['name' => 'HTML',         'category' => 'general', 'level' => 90, 'sort_order' => 1],
-            ['name' => 'CSS',          'category' => 'general', 'level' => 85, 'sort_order' => 2],
-            ['name' => 'JavaScript',   'category' => 'general', 'level' => 75, 'sort_order' => 3],
-            ['name' => 'PHP',          'category' => 'general', 'level' => 80, 'sort_order' => 4],
-            ['name' => 'Laravel',      'category' => 'general', 'level' => 78, 'sort_order' => 5],
-            ['name' => 'MySQL',        'category' => 'general', 'level' => 72, 'sort_order' => 6],
-            ['name' => 'UI/UX Design', 'category' => 'design',  'level' => 85, 'sort_order' => 1],
-            ['name' => 'Figma',        'category' => 'design',  'level' => 88, 'sort_order' => 2],
-            ['name' => 'Adobe XD',     'category' => 'design',  'level' => 75, 'sort_order' => 3],
-            ['name' => 'Git',          'category' => 'tools',   'level' => 70, 'sort_order' => 1],
-            ['name' => 'Tailwind CSS', 'category' => 'tools',   'level' => 82, 'sort_order' => 2],
-            ['name' => 'VS Code',      'category' => 'tools',   'level' => 90, 'sort_order' => 3],
-        ];
-
-        foreach ($skills as $skill) {
-            Skill::updateOrCreate(
-                ['name' => $skill['name']],
-                array_merge($skill, ['is_published' => true])
-            );
+        foreach ($cfgProfile as $key => $val) {
+            if ($val !== 'ISI' && filled($val)) {
+                $profileData[$key] = $val;
+            }
         }
 
-        // ── Projects ─────────────────────────────────────────────────────────
-        $projects = [
-            [
-                'title'        => '[CONTOH] Portfolio Website',
-                'description'  => 'Personal portfolio website dibangun dengan Laravel, Tailwind CSS, dan Alpine.js. Menampilkan proyek, skills, dan karya desain secara dinamis dari database.',
-                'technologies' => 'Laravel, Tailwind CSS, Alpine.js, MySQL',
-                'demo_url'     => 'https://example.com',
-                'github_url'   => 'https://github.com/example/portfolio',
-                'is_featured'  => true,
-                'is_published' => true,
-                'sort_order'   => 1,
-            ],
-            [
-                'title'        => '[CONTOH] E-Commerce Dashboard UI',
-                'description'  => 'Desain antarmuka dashboard manajemen toko online dengan tampilan modern, chart interaktif, dan manajemen produk lengkap.',
-                'technologies' => 'Figma, UI/UX Design, Prototyping',
-                'demo_url'     => null,
-                'github_url'   => null,
-                'is_featured'  => false,
-                'is_published' => true,
-                'sort_order'   => 2,
-            ],
-        ];
-
-        foreach ($projects as $project) {
-            Project::updateOrCreate(['title' => $project['title']], $project);
+        if (! empty($profileData)) {
+            Profile::updateOrCreate(['id' => 1], $profileData);
+            $this->command->info('LocalDevSeeder: Profil berhasil diselaraskan dari config/portfolio.php.');
         }
 
-        $this->command->info('LocalDevSeeder: data contoh berhasil diisi.');
+        // ── 2. Skills dari config/portfolio.php ──────────────────────────────
+        $cfgSkills = config('portfolio.skills', []);
+        $seededSkillsCount = 0;
+
+        foreach ($cfgSkills as $skill) {
+            if (! empty($skill['name']) && $skill['name'] !== 'ISI') {
+                Skill::updateOrCreate(
+                    ['name' => $skill['name']],
+                    [
+                        'category'     => ($skill['category'] !== 'ISI' && filled($skill['category'])) ? $skill['category'] : 'general',
+                        'level'        => is_numeric($skill['level'] ?? null) ? (int)$skill['level'] : 80,
+                        'sort_order'   => is_numeric($skill['sort_order'] ?? null) ? (int)$skill['sort_order'] : 1,
+                        'is_published' => true,
+                    ]
+                );
+                $seededSkillsCount++;
+            }
+        }
+
+        if ($seededSkillsCount > 0) {
+            $this->command->info("LocalDevSeeder: {$seededSkillsCount} skill berhasil di-seed dari config.");
+        }
+
+        // ── 3. Projects dari config/portfolio.php ────────────────────────────
+        $cfgProjects = config('portfolio.projects', []);
+        $seededProjectsCount = 0;
+
+        foreach ($cfgProjects as $project) {
+            if (! empty($project['title']) && $project['title'] !== 'ISI') {
+                Project::updateOrCreate(
+                    ['title' => $project['title']],
+                    [
+                        'description'  => $project['summary'] ?? $project['description'] ?? '',
+                        'technologies' => is_array($project['tags'] ?? null) ? implode(', ', $project['tags']) : ($project['technologies'] ?? ''),
+                        'image'        => $project['cover'] ?? $project['image'] ?? null,
+                        'demo_url'     => ($project['demo_url'] ?? null) !== 'ISI' ? ($project['demo_url'] ?? null) : null,
+                        'github_url'   => ($project['github_url'] ?? null) !== 'ISI' ? ($project['github_url'] ?? null) : null,
+                        'is_featured'  => filter_var($project['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                        'is_published' => true,
+                        'sort_order'   => is_numeric($project['sort_order'] ?? null) ? (int)$project['sort_order'] : 1,
+                    ]
+                );
+                $seededProjectsCount++;
+            }
+        }
+
+        if ($seededProjectsCount > 0) {
+            $this->command->info("LocalDevSeeder: {$seededProjectsCount} proyek berhasil di-seed dari config.");
+        }
+
+        // ── 4. Design Works dari config/portfolio.php ────────────────────────
+        $cfgWorks = config('portfolio.design_works', []);
+        $seededWorksCount = 0;
+
+        foreach ($cfgWorks as $work) {
+            if (! empty($work['title']) && $work['title'] !== 'ISI') {
+                DesignWork::updateOrCreate(
+                    ['title' => $work['title']],
+                    [
+                        'category'     => ($work['category'] !== 'ISI') ? ($work['category'] ?? 'Design') : 'Design',
+                        'image'        => ($work['image'] !== 'ISI') ? ($work['image'] ?? '') : '',
+                        'description'  => ($work['description'] !== 'ISI') ? ($work['description'] ?? null) : null,
+                        'is_published' => true,
+                        'sort_order'   => is_numeric($work['sort_order'] ?? null) ? (int)$work['sort_order'] : 1,
+                    ]
+                );
+                $seededWorksCount++;
+            }
+        }
+
+        if ($seededWorksCount > 0) {
+            $this->command->info("LocalDevSeeder: {$seededWorksCount} karya desain berhasil di-seed dari config.");
+        }
+
+        if (empty($profileData) && $seededSkillsCount === 0 && $seededProjectsCount === 0 && $seededWorksCount === 0) {
+            $this->command->info('LocalDevSeeder: Data dummy lama telah dibersihkan. Isi config/portfolio.php untuk mengimpor data awal.');
+        }
     }
 }
-

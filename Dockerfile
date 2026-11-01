@@ -49,16 +49,18 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-di
 RUN chmod -R 775 /app/storage /app/bootstrap/cache && \
     chmod +x /app/docker/entrypoint.sh
 
-# Environment defaults for Vercel Container execution
+# Environment defaults for Vercel Container execution (Mode tanpa DB eksternal & tanpa S3)
 ENV SERVER_NAME=":80"
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV APP_STORAGE_PATH=/tmp/storage
 ENV LOG_CHANNEL=stderr
 ENV VIEW_COMPILED_PATH=/tmp/storage/framework/views
-ENV SESSION_DRIVER=database
-ENV CACHE_STORE=database
-ENV FILESYSTEM_DISK=s3
+ENV SESSION_DRIVER=cookie
+ENV CACHE_STORE=file
+ENV FILESYSTEM_DISK=public
+ENV DB_CONNECTION=sqlite
+ENV DB_DATABASE=/tmp/storage/database.sqlite
 
 EXPOSE 80
 

@@ -1,262 +1,759 @@
 @import "tailwindcss";
 
-/* ── Design Tokens ──────────────────────────────────────────────────────── */
-@theme {
-    --color-cream:   #F5F0E8;
-    --color-charcoal:#252525;
-    --color-brown:   #8B6F47;
-    --color-beige:   #D4C5A9;
-    --color-sand:    #E8DFC8;
+/* ── Dark Monochrome Design Tokens ─────────────────────────────────────────── */
+:root {
+    /* Mode gelap (default) */
+    --background: #0B0B0C;
+    --foreground: #F2F2F2;
+    --card:       #111113;
+    --secondary:  #1C1C1F;
+    --muted:      #888885;
+    --border:     rgba(255, 255, 255, 0.10);
+    --border-hover: rgba(255, 255, 255, 0.25);
+    --accent:     #F2F2F2;
+    --accent-fg:  #0B0B0C;
+    /* Token permukaan kaca (dipakai depth-card, navbar, btn) */
+    --surface-tint:     rgba(255, 255, 255, 0.04);
+    --surface-border:   rgba(255, 255, 255, 0.12);
+    --surface-highlight: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22);
+    --surface-shadow:   0 16px 36px -10px rgba(0, 0, 0, 0.55),
+                        0 4px 12px -2px rgba(0, 0, 0, 0.30);
+    --surface-shadow-hover: 0 22px 48px -12px rgba(0, 0, 0, 0.75);
+    --surface-border-hover: rgba(255, 255, 255, 0.25);
+    --surface-spotlight: rgba(255, 255, 255, 0.12);
+    /* Warna chip foto (gelap agar kontras di atas foto) */
+    --chip-bg:   rgba(10, 10, 12, 0.80);
+    --chip-text: #F2F2F2;
+    /* Ikon pendidikan */
+    --icon-bg:   rgba(255, 255, 255, 0.10);
+    --icon-border: rgba(255, 255, 255, 0.15);
 
-    --font-sans:  'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-serif: 'Playfair Display', ui-serif, Georgia, serif;
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* ── Liquid Glass Navbar Variables (Mode Gelap) ────────────────────────── */
+    --glass-bg: rgba(255, 255, 255, 0.085);
+    --glass-border: rgba(255, 255, 255, 0.16);
+    --glass-highlight: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.38);
+    --glass-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --glass-text: rgba(255, 255, 255, 0.74);
+    --glass-text-hover: #FFFFFF;
+    --glass-bubble-bg: rgba(255, 255, 255, 0.14);
+    --glass-bubble-border: rgba(255, 255, 255, 0.24);
+    --glass-bubble-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25);
+    --glass-sheen: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Light Mode Tokens ──────────────────────────────────────────────────────── */
+:root:not(.dark), .light {
+    --background: #F5F0E8;
+    --foreground: #252525;
+    --card:       #FDFBF7;
+    --secondary:  #EDE8DE;
+    --muted:      #5B554C;
+    --border:     rgba(37, 37, 37, 0.10);
+    --border-hover: rgba(37, 37, 37, 0.25);
+    --accent:     #3D3931;
+    --accent-fg:  #F5F0E8;
+    /* Token permukaan kaca terang */
+    --surface-tint:     rgba(255, 255, 255, 0.62);
+    --surface-border:   rgba(37, 37, 37, 0.09);
+    --surface-highlight: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.90);
+    --surface-shadow:   0 8px 24px -6px rgba(100, 90, 70, 0.14),
+                        0 2px 8px -2px rgba(100, 90, 70, 0.08);
+    --surface-shadow-hover: 0 16px 36px -8px rgba(100, 90, 70, 0.22);
+    --surface-border-hover: rgba(37, 37, 37, 0.20);
+    --surface-spotlight: rgba(255, 255, 255, 0.50);
+    /* Chip foto di tema terang: tetap gelap agar terbaca di atas foto */
+    --chip-bg:   rgba(10, 10, 12, 0.72);
+    --chip-text: #F2F2F2;
+    /* Ikon */
+    --icon-bg:   rgba(37, 37, 37, 0.07);
+    --icon-border: rgba(37, 37, 37, 0.12);
+
+    /* ── Liquid Glass Navbar (Mode Terang) ─────────────────────────────────── */
+    --glass-bg: rgba(253, 251, 247, 0.82);
+    --glass-border: rgba(37, 37, 37, 0.10);
+    --glass-highlight: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95);
+    --glass-shadow: 0 20px 44px -12px rgba(0, 0, 0, 0.10), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    --glass-text: #4A4440;
+    --glass-text-hover: #252525;
+    --glass-bubble-bg: rgba(37, 37, 37, 0.07);
+    --glass-bubble-border: rgba(37, 37, 37, 0.12);
+    --glass-bubble-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 2px 6px rgba(0, 0, 0, 0.08);
+    --glass-sheen: rgba(255, 255, 255, 0.70);
+}
+
+@theme {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card:       var(--card);
+    --color-secondary:  var(--secondary);
+    --color-muted:      var(--muted);
+    --color-border:     var(--border);
+    --color-accent:     var(--accent);
+    --color-accent-fg:  var(--accent-fg);
+
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
-html { scroll-behavior: smooth; }
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    background-color: var(--background);
+    color: var(--foreground);
+}
+html.dark { color-scheme: dark; }
+html.light, html:not(.dark) { color-scheme: light; }
 
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 body {
     font-family: var(--font-sans);
-    background-color: var(--color-cream);
-    color: var(--color-charcoal);
+    background-color: var(--background);
+    color: var(--foreground);
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* ── Typography ─────────────────────────────────────────────────────────── */
-.font-serif { font-family: var(--font-serif); }
+/* ── Themed Thin Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+::-webkit-scrollbar-track {
+    background: var(--background);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+:root:not(.dark) ::-webkit-scrollbar-thumb, .light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.18);
+}
+:root:not(.dark) ::-webkit-scrollbar-thumb:hover, .light ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.35);
+}
 
-/* ── Buttons ─────────────────────────────────────────────────────────────── */
-.btn-primary {
+/* ── Atmospheric Background Layer & Blobs ────────────────────────────────── */
+.atmospheric-blobs {
+    filter: blur(80px);
+}
+@media (min-width: 640px) {
+    .atmospheric-blobs {
+        filter: blur(105px);
+    }
+}
+.blob {
+    position: absolute;
+    border-radius: 9999px;
+    will-change: transform;
+    pointer-events: none;
+}
+
+.blob-1 {
+    top: -8%;
+    left: 12%;
+    width: 580px;
+    height: 580px;
+    background: radial-gradient(circle, rgba(70, 92, 130, 0.18) 0%, transparent 70%);
+    animation: driftBlob1 28s ease-in-out infinite alternate;
+}
+
+.blob-2 {
+    top: 18%;
+    right: 4%;
+    width: 640px;
+    height: 640px;
+    background: radial-gradient(circle, rgba(95, 85, 125, 0.15) 0%, transparent 70%);
+    animation: driftBlob2 35s ease-in-out infinite alternate;
+}
+
+.blob-3 {
+    top: 52%;
+    left: 3%;
+    width: 540px;
+    height: 540px;
+    background: radial-gradient(circle, rgba(55, 80, 115, 0.16) 0%, transparent 70%);
+    animation: driftBlob3 32s ease-in-out infinite alternate;
+}
+
+.blob-4 {
+    bottom: -8%;
+    right: 18%;
+    width: 520px;
+    height: 520px;
+    background: radial-gradient(circle, rgba(80, 100, 130, 0.15) 0%, transparent 70%);
+    animation: driftBlob4 38s ease-in-out infinite alternate;
+}
+
+:root:not(.dark) .blob-1, .light .blob-1 {
+    background: radial-gradient(circle, rgba(215, 205, 185, 0.42) 0%, transparent 70%);
+}
+:root:not(.dark) .blob-2, .light .blob-2 {
+    background: radial-gradient(circle, rgba(232, 222, 202, 0.48) 0%, transparent 70%);
+}
+:root:not(.dark) .blob-3, .light .blob-3 {
+    background: radial-gradient(circle, rgba(212, 202, 182, 0.38) 0%, transparent 70%);
+}
+:root:not(.dark) .blob-4, .light .blob-4 {
+    background: radial-gradient(circle, rgba(226, 216, 196, 0.42) 0%, transparent 70%);
+}
+
+@keyframes driftBlob1 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(60px, 80px, 0) scale(1.08); }
+    100% { transform: translate3d(-40px, 40px, 0) scale(0.95); }
+}
+
+@keyframes driftBlob2 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-70px, -60px, 0) scale(1.1); }
+    100% { transform: translate3d(50px, 70px, 0) scale(0.92); }
+}
+
+@keyframes driftBlob3 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(80px, -50px, 0) scale(1.05); }
+    100% { transform: translate3d(-60px, 60px, 0) scale(0.98); }
+}
+
+@keyframes driftBlob4 {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(-50px, 60px, 0) scale(1.06); }
+    100% { transform: translate3d(60px, -40px, 0) scale(0.94); }
+}
+
+/* Subtle Film Noise */
+.bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+}
+
+/* Subtle Hero Grid with Radial Mask */
+.hero-grid-pattern {
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 35%, black 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 65% at 50% 35%, black 20%, transparent 75%);
+}
+:root:not(.dark) .hero-grid-pattern, .light .hero-grid-pattern {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+}
+
+/* ── Responsive Typography via clamp() ────────────────────────────────────── */
+.hero-title {
+    font-family: var(--font-sans);
+    font-size: clamp(2.75rem, 6vw, 5rem); /* 44px - 80px */
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    color: var(--foreground);
+}
+
+.hero-title-gradient {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 45%, #B3B3B3 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+:root:not(.dark) .hero-title-gradient, .light .hero-title-gradient {
+    background: linear-gradient(180deg, #111110 0%, #2A2A26 50%, #4A4A45 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.section-title {
+    font-family: var(--font-sans);
+    font-size: clamp(1.875rem, 3.2vw, 2.75rem); /* 30px - 44px */
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: var(--foreground);
+}
+
+.body-lead {
+    font-size: clamp(1rem, 1.25vw, 1.125rem); /* 16px - 18px */
+    line-height: 1.7;
+    color: var(--muted);
+}
+
+.body-standard {
+    font-size: clamp(0.9375rem, 1.1vw, 1rem); /* 15px - 16px */
+    line-height: 1.65;
+    color: var(--muted);
+}
+
+/* ── Container & Editorial Spacing ───────────────────────────────────────── */
+.editorial-container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: clamp(1.25rem, 6vw, 4.5rem);
+    padding-right: clamp(1.25rem, 6vw, 4.5rem);
+}
+
+.editorial-section {
+    padding-top: clamp(4.5rem, 8vw, 7.5rem);
+    padding-bottom: clamp(4.5rem, 8vw, 7.5rem);
+}
+
+/* Scroll margin agar judul section tidak tersembunyi di balik navbar saat anchor navigasi */
+section[id] {
+    scroll-margin-top: 100px;
+}
+
+/* ── LIQUID GLASS NAVBAR (Tingkat 1: Semua Browser) ───────────────────────── */
+.liquid-glass-pill {
+    position: relative;
+    background-color: var(--glass-bg);
+    -webkit-backdrop-filter: blur(20px) saturate(175%);
+    backdrop-filter: blur(20px) saturate(175%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-highlight), var(--glass-shadow);
+    border-radius: 9999px;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s ease;
+    --mouse-x: 50%;
+    --mouse-y: 50%;
+    --glow-opacity: 0;
+}
+
+/* Navbar Scrolled State */
+.liquid-glass-pill.is-scrolled {
+    transform: scale(0.985);
+    box-shadow: var(--glass-highlight), var(--glass-shadow);
+}
+
+/* Batasi blur di mobile untuk menghemat performa */
+@media (max-width: 640px) {
+    .liquid-glass-pill {
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
+        backdrop-filter: blur(12px) saturate(160%);
+    }
+}
+
+/* Tingkat 2: Progressive Enhancement (Filter SVG displacement dinamis) */
+@supports (backdrop-filter: url(#liquid-glass)) or (-webkit-backdrop-filter: url(#liquid-glass)) {
+    .liquid-glass-pill.has-svg-filter {
+        -webkit-backdrop-filter: url(#liquid-glass) blur(18px) saturate(170%);
+        backdrop-filter: url(#liquid-glass) blur(18px) saturate(170%);
+    }
+}
+
+/* Fallback jika backdrop-filter tidak didukung browser */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+    .liquid-glass-pill, .glass-btn, .depth-card {
+        background-color: var(--card) !important;
+    }
+}
+
+/* Hover Sheen: Kilau lembut mengikuti kursor (Nonaktif di layar sentuh) */
+@media (hover: hover) and (pointer: fine) {
+    .liquid-glass-pill::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(140px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+                                    var(--glass-sheen),
+                                    transparent 70%);
+        opacity: var(--glow-opacity, 0);
+        transition: opacity 0.25s ease;
+    }
+}
+
+/* Tombol Kaca Konsisten (Theme Toggle & Tombol Aksi) */
+.glass-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
-    background-color: var(--color-charcoal);
-    color: var(--color-cream);
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
+    position: relative;
+    background-color: var(--glass-bg);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-highlight), 0 4px 14px rgba(0, 0, 0, 0.2);
     border-radius: 9999px;
-    border: 1.5px solid var(--color-charcoal);
-    transition: background-color 0.2s, color 0.2s, transform 0.2s;
+    color: var(--glass-text-hover);
+    transition: all 0.2s ease;
     text-decoration: none;
     cursor: pointer;
+    min-height: 44px;
+    min-width: 44px;
 }
-.btn-primary:hover {
-    background-color: var(--color-brown);
-    border-color: var(--color-brown);
+
+.glass-btn:hover {
+    background-color: var(--glass-bubble-bg);
+    border-color: var(--glass-bubble-border);
+    color: var(--glass-text-hover);
     transform: translateY(-1px);
 }
 
-.btn-outline {
+.glass-btn:active {
+    transform: translateY(0);
+}
+
+.glass-btn:focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+}
+
+/* Gelembung Kaca (Active Item Indicator) yang bergeser halus */
+.nav-bubble {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    border-radius: 9999px;
+    background: var(--glass-bubble-bg);
+    border: 1px solid var(--glass-bubble-border);
+    box-shadow: var(--glass-bubble-shadow);
+    pointer-events: none;
+    z-index: 1;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.25s ease;
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
+}
+
+/* Navigasi Link di dalam Pil Kaca (Lebih besar: 15-16px, min 44px target sentuh) */
+.glass-nav-link {
+    position: relative;
+    z-index: 2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem 2rem;
-    background: transparent;
-    color: var(--color-charcoal);
-    font-size: 0.875rem;
+    padding: 0.5rem 1.125rem;
+    min-height: 44px;
+    font-size: 0.9375rem; /* 15px */
     font-weight: 500;
-    letter-spacing: 0.05em;
-    border-radius: 9999px;
-    border: 1.5px solid var(--color-beige);
-    transition: border-color 0.2s, color 0.2s, transform 0.2s;
+    color: var(--glass-text);
+    transition: color 0.2s ease;
     text-decoration: none;
-    cursor: pointer;
-}
-.btn-outline:hover {
-    border-color: var(--color-brown);
-    color: var(--color-brown);
-    transform: translateY(-1px);
+    border-radius: 9999px;
+    white-space: nowrap;
 }
 
-.btn-sm { padding: 0.5rem 1.25rem; font-size: 0.8125rem; }
+.glass-nav-link:hover {
+    color: var(--glass-text-hover);
+}
 
-/* ── Cards ───────────────────────────────────────────────────────────────── */
-.card-cream {
-    background: white;
-    border: 1px solid var(--color-sand);
+.glass-nav-link.active {
+    color: var(--glass-text-hover);
+    font-weight: 600;
+}
+
+.glass-nav-link:focus-visible {
+    outline: 2px solid var(--foreground);
+    outline-offset: 2px;
+}
+
+/* ── Unified Depth Card Component ────────────────────────────────────────── */
+.depth-card {
+    position: relative;
+    background: var(--surface-tint);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-highlight), var(--surface-shadow);
     border-radius: 1.25rem;
-    padding: 1.5rem;
-}
-
-.project-card {
-    position: relative;
-    transition: transform 0.3s;
-}
-.project-card:hover { transform: translateY(-4px); }
-
-.design-card {
-    position: relative;
-    border-radius: 1rem;
     overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.35s ease,
+                box-shadow 0.35s ease;
+    --card-spotlight-x: 50%;
+    --card-spotlight-y: 50%;
+    --card-spotlight-opacity: 0;
 }
 
-.skill-card {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 1rem;
-    padding: 1.25rem;
-    transition: background 0.2s, border-color 0.2s;
-}
-.skill-card:hover {
-    background: rgba(255,255,255,0.08);
-    border-color: rgba(139,111,71,0.4);
+/* Card hover lift & glow */
+@media (hover: hover) and (pointer: fine) {
+    .depth-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--surface-border-hover);
+        box-shadow: var(--surface-highlight), var(--surface-shadow-hover);
+    }
+
+    /* Radial Spotlight following cursor on cards */
+    .depth-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        z-index: 1;
+        background: radial-gradient(350px circle at var(--card-spotlight-x, 50%) var(--card-spotlight-y, 50%),
+                                    var(--surface-spotlight),
+                                    transparent 70%);
+        opacity: var(--card-spotlight-opacity, 0);
+        transition: opacity 0.25s ease;
+    }
 }
 
-/* ── Section Labels ─────────────────────────────────────────────────────── */
-.section-label {
-    display: inline-block;
-    font-size: 0.6875rem;
+/* 3D Tilt Container for Hero Profile Card */
+.tilt-card-container {
+    perspective: 1000px;
+}
+.tilt-card {
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* ── Hero Glass Buttons ──────────────────────────────────────────────────── */
+/* Tombol solid: putih di mode gelap, charcoal di mode terang */
+.btn-glass-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.875rem;
+    min-height: 48px;
+    background: var(--foreground);
+    color: var(--background);
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border-radius: 9999px;
+    border: 1px solid var(--foreground);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+.btn-glass-primary:hover {
+    transform: translateY(-2px);
+    opacity: 0.88;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+}
+.btn-glass-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: skewX(-20deg);
+    transition: none;
+}
+.btn-glass-primary:hover::after {
+    left: 140%;
+    transition: left 0.65s ease-in-out;
+}
+
+.btn-glass-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.625rem;
+    padding: 0.875rem 1.875rem;
+    min-height: 48px;
+    background: var(--surface-tint);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: var(--foreground);
+    font-size: 0.9375rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-brown);
-    margin-bottom: 1rem;
+    letter-spacing: -0.01em;
+    border-radius: 9999px;
+    border: 1px solid var(--surface-border);
+    box-shadow: var(--surface-highlight);
+    position: relative;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
-.section-label-light {
-    display: inline-block;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--color-brown);
-    margin-bottom: 1rem;
+.btn-glass-outline:hover {
+    background: var(--surface-border);
+    border-color: var(--surface-border-hover);
+    transform: translateY(-2px);
 }
 
-/* ── Tags ────────────────────────────────────────────────────────────────── */
-.tag {
-    display: inline-block;
+/* ── Keyframes & Animations ──────────────────────────────────────────────── */
+@keyframes floatGentle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+.animate-float {
+    animation: floatGentle 4.5s ease-in-out infinite;
+}
+
+@keyframes pulseSlow {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.85); }
+}
+.pulse-slow {
+    animation: pulseSlow 3s ease-in-out infinite;
+}
+
+/* ── Badges / Pills for Skills & Tags ────────────────────────────────────── */
+.skill-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4375rem 0.9375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--foreground);
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    transition: all 0.2s ease;
+}
+.skill-badge:hover {
+    border-color: var(--border-hover);
+    background-color: var(--secondary);
+    transform: translateY(-1px);
+}
+
+.tag-clean {
+    display: inline-flex;
+    align-items: center;
     padding: 0.25rem 0.75rem;
     font-size: 0.75rem;
     font-weight: 500;
-    background: var(--color-sand);
-    color: var(--color-charcoal);
+    color: var(--muted);
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
     border-radius: 9999px;
-    border: 1px solid var(--color-beige);
+    letter-spacing: 0.01em;
 }
 
-/* ── Filter Buttons ─────────────────────────────────────────────────────── */
-.filter-btn {
-    padding: 0.4rem 1.1rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    border-radius: 9999px;
-    border: 1.5px solid var(--color-beige);
-    background: transparent;
-    color: var(--color-charcoal);
-    cursor: pointer;
-    transition: all 0.2s;
+/* ── Editorial Project Card ──────────────────────────────────────────────── */
+.project-editorial-card {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    transition: transform 0.25s ease, border-color 0.25s ease;
 }
-.filter-btn:hover, .filter-btn.active {
-    background: var(--color-charcoal);
-    border-color: var(--color-charcoal);
-    color: var(--color-cream);
+.project-editorial-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-hover);
 }
 
-/* ── Form ────────────────────────────────────────────────────────────────── */
-.form-label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-charcoal);
-    margin-bottom: 0.5rem;
+.project-img-frame {
+    overflow: hidden;
+    background-color: var(--secondary);
 }
-.form-input {
+.project-img-frame img, .project-img-frame .project-placeholder {
+    transition: transform 0.3s ease;
+}
+.project-editorial-card:hover .project-img-frame img,
+.project-editorial-card:hover .project-img-frame .project-placeholder {
+    transform: scale(1.025);
+}
+
+/* ── Form Styling ────────────────────────────────────────────────────────── */
+.editorial-input {
     width: 100%;
-    padding: 0.75rem 1rem;
-    background: var(--color-cream);
-    border: 1.5px solid var(--color-sand);
-    border-radius: 0.75rem;
+    padding: 0.8125rem 1rem;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
     font-size: 0.9375rem;
-    color: var(--color-charcoal);
+    color: var(--foreground);
     font-family: var(--font-sans);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
     outline: none;
 }
-.form-input:focus {
-    border-color: var(--color-brown);
-    box-shadow: 0 0 0 3px rgba(139,111,71,0.1);
+.editorial-input:focus {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 3px rgba(128, 120, 100, 0.12);
 }
-.form-input::placeholder { color: rgba(37,37,37,0.35); }
-.form-error { font-size: 0.8125rem; color: #dc2626; margin-top: 0.35rem; }
+.editorial-input::placeholder {
+    color: var(--muted);
+    opacity: 0.7;
+}
 
-/* ── Admin Form ─────────────────────────────────────────────────────────── */
+/* ── Filter Buttons ──────────────────────────────────────────────────────── */
+.filter-btn {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.filter-btn.active {
+    background-color: var(--foreground) !important;
+    color: var(--background) !important;
+    border-color: var(--foreground) !important;
+}
+
+/* ── Admin input backward compatibility ──────────────────────────────────── */
 .admin-input {
     width: 100%;
     padding: 0.625rem 0.875rem;
-    border: 1.5px solid #e5e7eb;
+    border: 1.5px solid #374151;
     border-radius: 0.5rem;
     font-size: 0.9375rem;
-    color: #111827;
-    background: white;
+    color: #f9fafb;
+    background: #1f2937;
     transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
 }
 .admin-input:focus {
-    border-color: #8B6F47;
-    box-shadow: 0 0 0 3px rgba(139,111,71,0.12);
+    border-color: #9ca3af;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 .admin-label {
     display: block;
     font-size: 0.875rem;
     font-weight: 500;
-    color: #374151;
+    color: #e5e7eb;
     margin-bottom: 0.375rem;
 }
-.admin-error { font-size: 0.8125rem; color: #dc2626; margin-top: 0.25rem; }
-
-/* ── Animations ─────────────────────────────────────────────────────────── */
-@keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes bounceSlow {
-    0%, 100% { transform: translateX(-50%) translateY(0); }
-    50%       { transform: translateX(-50%) translateY(-6px); }
+.admin-error {
+    font-size: 0.8125rem;
+    color: #f87171;
+    margin-top: 0.25rem;
 }
 
-.animate-fade-up {
-    animation: fadeUp 0.7s ease forwards;
-    opacity: 0;
-}
-.animate-bounce-slow {
-    animation: bounceSlow 2.5s ease-in-out infinite;
-}
-
-/* Scroll reveal — hidden by default, shown by JS */
+/* ── Animations & Transitions ────────────────────────────────────────────── */
 .scroll-reveal {
     opacity: 0;
-    transform: translateY(28px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .scroll-reveal.visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-/* Respect reduced motion */
+/* ── Reduced Motion ──────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-    *, .scroll-reveal, .animate-fade-up, .animate-bounce-slow,
-    .btn-primary, .btn-outline, .project-card {
+    *, .scroll-reveal, .project-editorial-card, .btn-glass-primary, .btn-glass-outline,
+    .liquid-glass-pill, .liquid-glass-pill::before, .glass-btn, .glass-nav-link,
+    .blob, .animate-float, .pulse-slow, .tilt-card, .btn-glass-primary::after, .depth-card {
         animation: none !important;
         transition: none !important;
         transform: none !important;
-        opacity: 1 !important;
+        --glow-opacity: 0 !important;
+        --card-spotlight-opacity: 0 !important;
+    }
+
+    /* Gelembung berpindah tanpa animasi (transition dimatikan, transform tetap aktif) */
+    .nav-bubble {
+        animation: none !important;
+        transition: none !important;
     }
 }
 
 /* ── Lightbox ────────────────────────────────────────────────────────────── */
 #lightbox { display: none; }
 #lightbox.open { display: flex; }
-
-/* ── Utility ─────────────────────────────────────────────────────────────── */
-.line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}

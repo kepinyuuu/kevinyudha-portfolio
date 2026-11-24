@@ -41,22 +41,27 @@ return [
     */
     'skills' => [
         // Web Development
-        ['name' => 'HTML & CSS',             'category' => 'general', 'level_label' => null,     'sort_order' => 1],
-        ['name' => 'JavaScript (Dasar)',    'category' => 'general', 'level_label' => 'Dasar',  'sort_order' => 2],
-        ['name' => 'PHP (Dasar)',           'category' => 'general', 'level_label' => 'Dasar',  'sort_order' => 3],
-        ['name' => 'Laravel (Dasar)',       'category' => 'general', 'level_label' => 'Dasar',  'sort_order' => 4],
-        ['name' => 'MySQL',                 'category' => 'general', 'level_label' => null,     'sort_order' => 5],
+        ['name' => 'HTML & CSS',             'category' => 'general', 'icon' => 'html-css',            'brand_color' => '#E34F26', 'level_label' => null,     'sort_order' => 1],
+        ['name' => 'JavaScript (Dasar)',    'category' => 'general', 'icon' => 'javascript',          'brand_color' => '#F7DF1E', 'level_label' => 'Dasar',  'sort_order' => 2],
+        ['name' => 'PHP (Dasar)',           'category' => 'general', 'icon' => 'php',                 'brand_color' => '#777BB4', 'level_label' => 'Dasar',  'sort_order' => 3],
+        ['name' => 'Laravel (Dasar)',       'category' => 'general', 'icon' => 'laravel',             'brand_color' => '#FF2D20', 'level_label' => 'Dasar',  'sort_order' => 4],
+        ['name' => 'MySQL',                 'category' => 'general', 'icon' => 'mysql',               'brand_color' => '#4479A1', 'level_label' => null,     'sort_order' => 5],
 
-        // Desain (Hanya Figma sesuai aturan ketat CV)
-        ['name' => 'UI/UX Design (Figma)',  'category' => 'design',  'level_label' => null,     'sort_order' => 1],
+        // Desain
+        ['name' => 'UI Design',             'category' => 'design',  'icon' => 'layout',               'brand_color' => '#38BDF8', 'level_label' => null,     'sort_order' => 1],
+        ['name' => 'UX Design',             'category' => 'design',  'icon' => 'users',                'brand_color' => '#A855F7', 'level_label' => null,     'sort_order' => 2],
+        ['name' => 'Wireframing',           'category' => 'design',  'icon' => 'pen-tool',             'brand_color' => '#F59E0B', 'level_label' => null,     'sort_order' => 3],
+        ['name' => 'Prototyping',           'category' => 'design',  'icon' => 'mouse-pointer-click',  'brand_color' => '#EC4899', 'level_label' => null,     'sort_order' => 4],
+        ['name' => 'Visual Design',         'category' => 'design',  'icon' => 'palette',              'brand_color' => '#8B5CF6', 'level_label' => null,     'sort_order' => 5],
+        ['name' => 'Figma',                 'category' => 'design',  'icon' => 'figma',                'brand_color' => '#F24E1E', 'level_label' => null,     'sort_order' => 6],
 
         // Lainnya
-        ['name' => 'Microsoft Excel (Dasar)', 'category' => 'other', 'level_label' => 'Dasar',  'sort_order' => 1],
+        ['name' => 'Microsoft Excel (Dasar)', 'category' => 'other', 'icon' => 'table',                'brand_color' => '#107C41', 'level_label' => 'Dasar',  'sort_order' => 1],
 
         // Soft Skills
-        ['name' => 'Komunikasi yang Baik',          'category' => 'soft',  'level_label' => null, 'sort_order' => 1],
-        ['name' => 'Mampu Bekerja dalam Tim',       'category' => 'soft',  'level_label' => null, 'sort_order' => 2],
-        ['name' => 'Teliti dan Bertanggung Jawab',  'category' => 'soft',  'level_label' => null, 'sort_order' => 3],
+        ['name' => 'Komunikasi yang Baik',          'category' => 'soft',  'icon' => 'message-circle', 'brand_color' => '#06B6D4', 'level_label' => null, 'sort_order' => 1],
+        ['name' => 'Mampu Bekerja dalam Tim',       'category' => 'soft',  'icon' => 'handshake',      'brand_color' => '#10B981', 'level_label' => null, 'sort_order' => 2],
+        ['name' => 'Teliti dan Bertanggung Jawab',  'category' => 'soft',  'icon' => 'check-circle',   'brand_color' => '#3B82F6', 'level_label' => null, 'sort_order' => 3],
     ],
 
     /*

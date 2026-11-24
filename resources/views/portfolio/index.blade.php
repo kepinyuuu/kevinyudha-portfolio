@@ -326,24 +326,64 @@
 
             @php
                 $skillCategories = [
-                    'general' => 'Web Development',
-                    'design'  => 'Desain',
-                    'other'   => 'Lainnya',
-                    'soft'    => 'Soft Skills',
+                    'general' => [
+                        'title'     => 'Web Development',
+                        'icon'      => 'code',
+                        'watermark' => 'code',
+                    ],
+                    'design'  => [
+                        'title'       => 'Desain',
+                        'icon'        => 'palette',
+                        'watermark'   => 'pen-tool',
+                        'description' => 'Merancang antarmuka yang jelas dan nyaman digunakan.',
+                    ],
+                    'other'   => [
+                        'title'     => 'Lainnya',
+                        'icon'      => 'table',
+                        'watermark' => 'table',
+                    ],
+                    'soft'    => [
+                        'title'     => 'Soft Skills',
+                        'icon'      => 'users',
+                        'watermark' => 'users',
+                    ],
                 ];
             @endphp
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                @foreach($skillCategories as $catKey => $catLabel)
+                @foreach($skillCategories as $catKey => $catMeta)
                     @if(isset($skills[$catKey]) && $skills[$catKey]->count())
-                    <div class="depth-card p-7 md:p-8 scroll-reveal" style="transition-delay: {{ $loop->index * 80 }}ms">
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] flex items-center gap-2 mb-5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[var(--foreground)]"></span>
-                            {{ $catLabel }}
-                        </h3>
-                        <div class="flex flex-wrap gap-2.5">
+                    <div class="depth-card relative overflow-hidden p-7 md:p-8 scroll-reveal" style="transition-delay: {{ $loop->index * 80 }}ms">
+                        {{-- Watermark pojok kanan bawah (96-120px, transparan 5-8%, pointer-events-none) --}}
+                        <div class="absolute -right-3 -bottom-3 w-28 h-28 pointer-events-none opacity-[0.06] text-[var(--foreground)] select-none" aria-hidden="true">
+                            <x-skill-icon :name="$catMeta['watermark']" class="w-full h-full" />
+                        </div>
+
+                        {{-- Header Card: Kotak Ikon 24px + Judul --}}
+                        <div class="flex items-center gap-3 mb-5 relative z-10">
+                            <div class="w-10 h-10 rounded-lg bg-[var(--foreground)]/5 border border-[var(--border)] flex items-center justify-center shrink-0 text-[var(--foreground)]" aria-hidden="true">
+                                <x-skill-icon :name="$catMeta['icon']" class="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 class="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
+                                    {{ $catMeta['title'] }}
+                                </h3>
+                                @if(!empty($catMeta['description']))
+                                <p class="text-xs text-[var(--muted)] mt-0.5 leading-relaxed">
+                                    {{ $catMeta['description'] }}
+                                </p>
+                                @endif
+                            </div>
+                        </div>
+
+                        {{-- Chip Skills --}}
+                        <div class="flex flex-wrap gap-2.5 relative z-10">
                             @foreach($skills[$catKey] as $skill)
-                            <div class="skill-badge">
+                            <div class="group/chip skill-badge inline-flex items-center gap-2 cursor-default"
+                                 style="--brand-color: {{ $skill->brand_color ?? 'var(--foreground)' }}">
+                                @if($skill->icon)
+                                <x-skill-icon :name="$skill->icon" class="w-4 h-4 shrink-0 text-current transition-colors duration-150 group-hover/chip:[color:var(--brand-color)]" />
+                                @endif
                                 <span>{{ $skill->name }}</span>
                             </div>
                             @endforeach

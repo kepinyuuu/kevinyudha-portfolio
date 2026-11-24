@@ -23,6 +23,8 @@ class PortfolioController extends Controller
             ->map(fn ($s) => new Fluent([
                 'name'         => $s['name'],
                 'category'     => ($s['category'] ?? '') === 'ISI' ? 'general' : ($s['category'] ?? 'general'),
+                'icon'         => $s['icon'] ?? null,
+                'brand_color'  => $s['brand_color'] ?? null,
                 'level'        => 80,
                 'sort_order'   => is_numeric($s['sort_order'] ?? null) ? (int)$s['sort_order'] : 0,
                 'is_published' => true,
